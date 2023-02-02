@@ -1,0 +1,18 @@
+[area0]
+chr8 ansible_host=192.168.172.18
+chr7 ansible_host=192.168.172.17
+chr6 ansible_host=192.168.172.16
+chr5 ansible_host=192.168.172.15
+chr4 ansible_host=192.168.172.14
+chr3 ansible_host=192.168.172.13
+chr2 ansible_host=192.168.172.12
+chr1 ansible_host=192.168.172.11
+
+[area0:vars]
+ntp_server1 = 8.8.8.8
+ntp_server2 = 8.8.4.4
+
+[routeros:children]
+area0
+
+

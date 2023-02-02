@@ -1,0 +1,38 @@
+
+ansible_user: admin
+ansible_ssh_pass: somesecretpassword
+ansible_ssh_private_key_file: /some/key/file
+ansible_connection: network_cli
+ansible_network_os: routeros
+ansible_python_interpreter: auto_silent
+
+# group global settings
+timezone: Europe/Stockholm
+dns_server: 192.168.1.1
+syslog_server: 192.168.1.10
+mpls_loopback_net: 172.30.7.0/24
+mpls_global_mtu: 1526
+ospf_auth_key: somesecretkey
+snmp_community: public
+snmp_allow_from: 192.168.1.0/24
+snmp_trap_target: 192.168.1.10
+snmp_contact: some@contact.com
+
+# routeros settings
+routeros_upgrade_method: online     # http or online
+routeros_target_version: "6.49"
+routeros_upgrade_http_url: http://server
+
+# general tunnel settings
+vpls_l2mtu: 1500
+eoip_l2mtu: 1500
+
+# dns and dhcp settings
+dns_local_domain: lab.zone
+dns_nodes:
+  - router1
+dhcp_nodes:
+  - router1
+
+
+

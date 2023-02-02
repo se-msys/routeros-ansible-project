@@ -1,0 +1,43 @@
+#
+# RouterOS 7 subnet deploy
+#
+- name: subnet_config
+  tags:
+    - subnet
+  include_vars: vars/routeros_subnet.yaml
+
+
+#
+# un-deploy tasks
+#
+- name: subnet_remove
+  tags:
+    - subnet
+  routeros_command:
+    commands:
+      - /routing ospf network remove [find network="{{ item.subnet }}"]
+      - /ip/address remove [find address="{{ item.subnet|ipaddr('1') }}"]
+  loop: "{{ ros_subnet }}"
+  when: 
+    - item.state == "absent"
+    - item.node == inventory_hostname
+    - item.ospf == "true"
+
+
+#
+# deploy tasks
+#
+- name: subnet_deploy
+  tags:
+    - subnet
+  routeros_command:
+    commands:
+      - /ip/address add interface={{ item.interface }} address={{ item.subnet|ipaddr('1') }}
+      - /routing/ospf interface-template add network={{ item.subnet }} area={{ item.area }}
+  loop: "{{ ros_subnet }}"
+  when:
+    - item.state == "present"
+    - item.node == inventory_hostname
+    - item.ospf == "true"
+    
+

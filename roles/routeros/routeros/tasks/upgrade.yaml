@@ -1,0 +1,41 @@
+#
+# routeros upgrade tasks
+#
+- name: get_ros_ver
+  routeros_command:
+    commands: ":put [/system resource get version]"
+  register: ros_ver
+
+
+- name: get_ros_arch
+  routeros_command:
+    commands: ":put [/system resource get architecture-name]"
+  register: ros_arch
+
+
+- name: run_http_upgrade
+  routeros_command:
+    commands: 
+      - /tool fetch {{ routeros_upgrade_http_url }}/routeros-{{ ros_arch.stdout[0] }}-{{ routeros_target_version }}npk
+      - /sys reboot
+  when:
+    - ros_ver.stdout[0] != routeros_target_version
+    - routeros_upgrade_method == "http"
+  vars:
+    ansible_command_timeout: 900
+
+
+- name: run_online_upgrade
+  routeros_command:
+    commands:
+      - /system package update download
+      - /sys reboot
+  when:
+    - ros_ver.stdout[0] != routeros_target_version
+    - routeros_upgrade_method == "online"
+  vars:
+    ansible_command_timeout: 900
+
+
+
+

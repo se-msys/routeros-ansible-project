@@ -1,0 +1,36 @@
+#
+# Deploy subnets on interfaces
+#
+ros_subnet:
+  - node: chr1
+    interface: dummy0
+    address: 198.51.100.1/27
+    ospf: true
+    bgp: false
+    ospf_area: 0.0.0.0
+    state: absent
+
+  - node: chr5
+    interface: dummy0
+    address: 203.0.113.1/27
+    ospf: true
+    bgp: false
+    ospf_area: 1.1.1.1
+    state: absent
+
+  - node: chr5
+    interface: dummy0
+    address: 198.51.100.33/27
+    ospf: true
+    bgp: false
+    ospf_area: 1.1.1.1
+    state: absent
+
+  - node: chr8
+    interface: dummy0
+    address: 203.0.113.33/27
+    ospf: true
+    bgp: false
+    ospf_area: 1.1.1.1
+    state: absent
+

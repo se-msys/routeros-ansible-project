@@ -1,0 +1,32 @@
+#
+# DNS and DHCP entries
+#
+ros_dns_dhcp:
+
+  - address: 192.168.1.10
+    name: server1
+    state: present
+    dns: true
+    dhcp: false
+
+  - address: 192.168.1.20
+    name: server2
+    state: present
+    dns: true
+    dhcp: false
+
+  - address: 192.168.1.101
+    name: client1
+    mac: F5:6D:54:74:B7:89
+    server: dhcp_vlan10
+    state: present
+    dns: true
+    dhcp: true
+
+  - address: 192.168.1.102
+    name: client2
+    mac: 1A:E9:4C:68:A4:C8
+    server: dhcp_vlan10
+    state: present
+    dns: true
+    dhcp: true

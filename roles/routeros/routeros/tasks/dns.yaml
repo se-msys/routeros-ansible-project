@@ -1,0 +1,34 @@
+#
+# DNS static entries
+#
+- name: dns_config
+  include_vars: vars/routeros_dns_dhcp.yaml
+
+
+#
+# un-deploy tasks
+#
+- name: dns_static_remove
+  routeros_command:
+    commands:
+      - /ip dns static remove [find address={{ item.address }}]
+  loop: "{{ ros_dns_dhcp }}"
+  when: 
+    - item.state == "absent"
+    - inventory_hostname in dns_nodes
+
+#
+# deploy tasks
+#
+- name: dns_static_add
+  routeros_command:
+    commands:
+      - /ip dns static add name={{ item.name }}.{{ dns_local_domain }} address={{ item.address }} comment="A={{ item.address }}"
+  loop: "{{ ros_dns_dhcp }}"
+  when:
+    - item.dns == true
+    - item.state == "present"
+    - inventory_hostname in dns_nodes
+
+
+

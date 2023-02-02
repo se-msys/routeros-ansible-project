@@ -1,0 +1,66 @@
+#
+# Provider services
+#
+- name: provider_config
+  tags: provider
+  include_vars: vars/routeros_provider.yaml
+
+
+#
+# un-deploy tasks
+#
+- name: provider_br_remove
+  tags: provider
+  routeros_command:
+    commands:
+      - /interface bridge remove [find name=br-{{ item.key }}]
+  loop: "{{ ros_provider | dict2items }}"
+  when: 
+    - item.value.type == "br"
+    - item.value.state == "absent"
+    - inventory_hostname in item.value.hubs
+
+
+- name: provider_vrf_remove
+  tags: provider
+  routeros_command:
+    commands:
+      - /interface/list/member remove [find list=vrf{{ item.key }}]
+      - /interface/list remove [find name=vrf{{ item.key }}]
+      - /ip/vrf remove [find name=vrf{{ item.key }}]
+  loop: "{{ ros_provider | dict2items }}"
+  when: 
+    - item.value.type == "vrf"
+    - item.value.state == "absent"
+    - inventory_hostname in item.value.hubs
+
+
+
+#
+# deploy tasks
+#
+- name: provider_br_deploy
+  tags: provider
+  routeros_command:
+    commands:
+      - /interface bridge add name=br-{{ item.key }} arp=disable comment="br;{{ item.key }};{{ item.value.customer }};{{ item.value.comment }}"
+  loop: "{{ ros_provider | dict2items }}"
+  when:
+    - item.value.type == "br"
+    - item.value.state == "present"
+    - inventory_hostname in item.value.hubs
+
+
+- name: provider_vrf_deploy
+  tags: provider
+  routeros_command:
+    commands:
+      - /interface/list add name=vrf{{ item.key }}
+      - /ip/vrf add name=vrf{{ item.key }} interfaces=vrf{{ item.key }}
+  loop: "{{ ros_provider | dict2items }}"
+  when:
+    - item.value.type == "vrf"
+    - item.value.state == "present"
+    - inventory_hostname in item.value.hubs
+
+

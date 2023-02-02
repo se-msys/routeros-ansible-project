@@ -1,0 +1,94 @@
+#
+# Deploy subnets on interfaces
+#
+ros_tunnel:
+
+  # L2 services
+  - service_id: 101
+    service_type: br
+    tun_id: 1
+    type: vpls
+    hub_node: chr1
+    end_node: chr8
+    end_intf: ether6
+    comment: "Example tunnel"
+    state: present
+
+  - service_id: 101
+    service_type: br
+    tun_id: 2
+    type: vpls
+    hub_node: chr2
+    end_node: chr8
+    end_intf: ether6
+    comment: "Example tunnel"
+    state: present
+
+  - service_id: 102
+    service_type: br
+    tun_id: 1
+    type: eoip
+    hub_node: chr1
+    end_node: chr8
+    end_intf: ether6
+    comment: "Example tunnel"
+    state: present
+
+  - service_id: 102
+    service_type: br
+    tun_id: 2
+    type: eoip
+    hub_node: chr2
+    end_node: chr8
+    end_intf: ether6
+    comment: "Example tunnel"
+    state: present
+
+
+  # L3 services
+  - service_id: 201
+    service_type: vrf
+    tun_id: 1
+    type: vpls
+    hub_node: chr1
+    hub_address: 10.201.0.1/28
+    end_node: chr8
+    end_intf: ether7
+    comment: "Example tunnel"
+    state: present
+
+  - service_id: 201
+    service_type: vrf
+    tun_id: 2
+    type: vpls
+    hub_node: chr2
+    hub_address: 10.201.0.2/28
+    end_node: chr8
+    end_intf: ether7
+    comment: "Example tunnel"
+    state: present
+
+  - service_id: 202
+    service_type: vrf
+    tun_id: 1
+    type: eoip
+    hub_node: chr1
+    hub_address: 10.202.0.1/28
+    end_node: chr8
+    end_intf: ether7
+    comment: "Example tunnel"
+    state: present
+
+  - service_id: 202
+    service_type: vrf
+    tun_id: 2
+    type: eoip
+    hub_node: chr2
+    hub_address: 10.202.0.2/28
+    end_node: chr8
+    end_intf: ether7
+    comment: "Example tunnel"
+    state: present
+
+
+

@@ -1,0 +1,24 @@
+#
+# VLAN sub-interfaces
+#
+ros_vlan: 
+  - type: vlan
+    vlan_id: 123
+    node: chr8
+    node_intf: ether3
+    comment: Simple VLAN interface
+    state: present
+
+  - type: vlan
+    vlan_id: 123
+    node: chr7
+    node_intf: ether3
+    comment: Simple VLAN interface
+    state: present
+
+  - type: vlan
+    vlan_id: 456
+    node: chr6
+    node_intf: ether3
+    comment: Simple VLAN interface
+    state: present

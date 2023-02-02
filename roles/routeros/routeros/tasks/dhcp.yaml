@@ -1,0 +1,35 @@
+#
+# DHCP static leases
+#
+- name: dhcp_config
+  include_vars: vars/routeros_dns_dhcp.yaml
+
+
+#
+# un-deploy tasks
+#
+- name: dhcp_static_remove
+  routeros_command:
+    commands:
+      - /ip dhcp-server lease remove [find address={{ item.address }}]
+  loop: "{{ ros_dns_dhcp }}"
+  when: 
+    - item.state == "absent"
+    - inventory_hostname in dhcp_nodes
+
+
+#
+# deploy tasks
+#
+- name: dhcp_static_add
+  routeros_command:
+    commands:
+      - /ip dhcp-server lease add address={{ item.address }} mac-address={{ item.mac }} comment="{{ item.name }}" server={{ item.server }}
+  loop: "{{ ros_dns_dhcp }}"
+  when:
+    - item.dhcp == true
+    - item.state == "present"
+    - inventory_hostname in dhcp_nodes
+
+
+

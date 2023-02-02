@@ -1,0 +1,40 @@
+#
+# RouterOS VLAN interface deploy
+#
+- name: vlan_config
+  tags:
+    - vlan
+  include_vars: vars/routeros_vlan.yaml
+
+
+#
+# un-deploy tasks
+#
+- name: vlan_remove
+  tags:
+    - vlan
+  routeros_command:
+    commands:
+      - /ip address remove [find interface="{{ item.node_intf }}.{{ item.vlan_id }}]
+      - /interface vlan remove [find interface="{{ item.node_intf }}.{{ item.vlan_id }}]
+  loop: "{{ ros_vlan }}"
+  when: 
+    - item.state == "absent"
+    - item.node == inventory_hostname
+
+
+#
+# deploy tasks
+#
+- name: vlan_deploy
+  tags:
+    - vlan
+  routeros_command:
+    commands:
+      - /interface vlan add name={{ item.node_intf }}.{{ item.vlan_id }}] interface={{ item.node_intf }} vlan-id={{ item.vlan_id }}
+  loop: "{{ ros_vlan }}"
+  when:
+    - item.state == "present"
+    - item.node == inventory_hostname
+
+
