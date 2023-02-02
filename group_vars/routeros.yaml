@@ -9,6 +9,8 @@ ansible_python_interpreter: auto_silent
 # group global settings
 timezone: Europe/Stockholm
 dns_server: 192.168.1.1
+ntp_server1: 192.168.1.1
+ntp_server2: 192.168.1.10
 syslog_server: 192.168.1.10
 mpls_loopback_net: 172.30.7.0/24
 mpls_global_mtu: 1526
