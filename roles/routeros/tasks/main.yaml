@@ -2,15 +2,31 @@
 # RouterOS tasks
 #
 
+# detect version and architecture
 - name: get_ros_ver
   tags: detect
   routeros_command:
     commands: ":put [/system resource get version]"
   register: ros_ver
 
-- name: ros_upgrade
+- name: get_ros_arch
+  tags: detect
+  routeros_command:
+    commands: ":put [/system resource get architecture-name]"
+  register: ros_arch
+
+
+- name: ros_upgrade6
   tags: upgrade
-  import_tasks: roles/routeros/tasks/upgrade.yaml
+  import_tasks: roles/routeros/tasks/upgrade6.yaml
+  when:
+    - ros_ver.stdout is search("6\..+")
+
+- name: ros_upgrade7
+  tags: upgrade
+  import_tasks: roles/routeros/tasks/upgrade7.yaml
+  when:
+    - ros_ver.stdout is search("7\..+")
 
 - name: ros_vpls6
   tags: vpls
@@ -40,6 +56,13 @@
   when:
     - ros_ver.stdout is search("7\..+")
 
+- name: ros_provider7
+  tags: provider
+  import_tasks: roles/routeros/tasks/provider7.yaml
+  when:
+    - ros_ver.stdout is search("7\..+")
+
+
 - name: ros_dns
   tags: dns
   import_tasks: roles/routeros/tasks/dns.yaml
@@ -48,10 +71,13 @@
   tags: dhcp
   import_tasks: roles/routeros/tasks/dhcp.yaml
 
-- name: ros_provider
-  tags: provider
-  import_tasks: roles/routeros/tasks/provider.yaml
 
+#
+#- name: Print the transformed variable
+#  ansible.builtin.debug:
+#    msg: '{{ item }}'
+#  loop: '{{ result.stdout | from_yaml_all | list }}'
+#
 
 
 - name: ros_users
