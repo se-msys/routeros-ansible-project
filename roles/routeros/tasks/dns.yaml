@@ -17,6 +17,7 @@
     - item.state == "absent"
     - inventory_hostname in dns_nodes
 
+
 #
 # deploy tasks
 #

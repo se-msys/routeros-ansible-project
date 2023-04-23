@@ -5,90 +5,111 @@ ros_tunnel:
 
   # L2 services
   - service_id: 101
-    service_type: br
+    service_type: l2t
     tun_id: 1
     type: vpls
     hub_node: chr1
     end_node: chr8
     end_intf: ether6
-    comment: "Example tunnel"
-    state: present
+    comment: "tunnel between chr1 and chr8"
+    state: absent
 
   - service_id: 101
-    service_type: br
+    service_type: l2t
     tun_id: 2
     type: vpls
     hub_node: chr2
     end_node: chr8
     end_intf: ether6
-    comment: "Example tunnel"
-    state: present
+    comment: "tunnel between chr1 and chr8"
+    state: absent
 
   - service_id: 102
-    service_type: br
+    service_type: l2t
     tun_id: 1
-    type: eoip
-    hub_node: chr1
+    type: eoip_ap                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_source: 172.30.255.1
     end_node: chr8
-    end_intf: ether6
-    comment: "Example tunnel"
-    state: present
+    end_intf: ether7
+    comment: "Active/Passive tunnel"
+    state: absent
 
   - service_id: 102
-    service_type: br
+    service_type: l2t
     tun_id: 2
-    type: eoip
-    hub_node: chr2
+    type: eoip_ap                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_source: 172.30.255.1
+    end_node: chr7
+    end_intf: ether7
+    comment: "Active/Passive tunnel"
+    state: absent
+
+  - service_id: 103
+    service_type: l2br
+    tun_id: 1
+    type: eoip_ap                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_source: 172.30.255.1
+    hub_vlan: 103
     end_node: chr8
-    end_intf: ether6
-    comment: "Example tunnel"
-    state: present
+    end_intf: ether7
+    comment: "Bridged tunnel"
+    state: absent
+
 
 
   # L3 services
   - service_id: 201
-    service_type: vrf
+    service_type: l3t
     tun_id: 1
     type: vpls
     hub_node: chr1
-    hub_address: 10.201.0.1/28
+    hub_address: 10.201.1.1/28
     end_node: chr8
     end_intf: ether7
-    comment: "Example tunnel"
-    state: present
+    comment: "tunnel between chr1 and chr8"
+    state: absent
 
   - service_id: 201
-    service_type: vrf
+    service_type: l3t
     tun_id: 2
     type: vpls
     hub_node: chr2
-    hub_address: 10.201.0.2/28
+    hub_address: 10.201.1.2/28
     end_node: chr8
     end_intf: ether7
-    comment: "Example tunnel"
-    state: present
+    comment: "tunnel between chr1 and chr8"
+    state: absent
 
   - service_id: 202
-    service_type: vrf
+    service_type: l3t
     tun_id: 1
-    type: eoip
-    hub_node: chr1
-    hub_address: 10.202.0.1/28
+    type: eoip_ap                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_source: 172.30.255.1
+    hub_address: 10.202.1.1/28
     end_node: chr8
     end_intf: ether7
-    comment: "Example tunnel"
-    state: present
+    comment: "Active/Standby tunnel"
+    state: absent
 
   - service_id: 202
-    service_type: vrf
+    service_type: l3t
     tun_id: 2
-    type: eoip
-    hub_node: chr2
-    hub_address: 10.202.0.2/28
-    end_node: chr8
+    type: eoip_ap                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_source: 172.30.255.1
+    hub_address: 10.202.2.1/28
+    end_node: chr7
     end_intf: ether7
-    comment: "Example tunnel"
-    state: present
-
+    comment: "Active/Standby tunnel"
+    state: absent
 
 

@@ -1,0 +1,93 @@
+#
+# RouterOS misc tasks
+#
+
+
+- name: ros_users
+  tags:
+    - users
+  routeros_command:
+    commands:
+      - if [/user get donaldduck ] do={ /user remove donaldduck }
+      - if [/user get admin ] do={ :log info "user admin exists" }
+      #- /user add name=ansible group=write comment=AnsibleUser password=123
+      #- /user add name=backupuser group=read comment=BackupUser password=123
+
+
+- name: ros_misc
+  tags:
+    - misc
+    - setup
+  routeros_command:
+    commands:
+      - /ip dns set allow-remote-requests=no servers={{ dns_server }}
+      - /ip cloud set update-time=no ddns-enabled=no
+      - /ip upnp set show-dummy-rule=no enabled=no
+      - /ip smb set allow-guests=no enabled=no
+      - /ip ssh set allow-none-crypto=no forwarding-enabled=no
+      - /tool bandwidth-server set enabled=no
+      - /system ntp client set enabled=yes primary-ntp={{ ntp_server1 }} secondary-ntp={{ ntp_server2 }}
+      - /system clock set time-zone-autodetect=no time-zone-name={{ timezone }}
+      - /ip socks set enabled=no
+      - /ip proxy set enabled=no
+      - /tool sniffer set enabled=no
+      - /ip service set telnet disabled=no
+      - /ip service set ftp disabled=yes
+      - /ip service set api disabled=yes
+      - /ip service set winbox disabled=yes
+      - /ip service set api-ssl disabled=yes
+      - /snmp community set [ find default=yes ] addresses={{ snmp_allow_from }} name={{ snmp_community }}
+      - /snmp set contact={{ snmp_contact }} enabled=yes trap-generators=interfaces trap-interfaces=all trap-target={{ snmp_trap_target }} trap-version=2
+
+
+- name: ros_mpls
+  tags:
+    - mpls
+  routeros_command:
+    commands:
+      - /mpls interface set [find where default] mpls-mtu={{ mpls_global_mtu }}
+      - /mpls ldp interface set [find] hello-interval=2s hold-time=10s
+      - /mpls ldp accept-filter remove [find]
+      - /mpls ldp advertise-filter remove [find]
+      - /mpls ldp advertise-filter add prefix={{ mpls_loopback_net }}
+      - /mpls ldp advertise-filter add prefix=0.0.0.0/0 advertise=no
+
+
+- name: ros_ospf
+  tags: 
+    - ospf
+  routeros_command:
+    commands:
+      - /routing ospf interface set [find network-type=point-to-point] \
+        hello-interval=2s dead-interval=10s use-bfd=no athentication=md5 authentication-key={{ ospf_auth_key }}
+
+
+- name: ros_logging
+  tags:
+    - logging
+  routeros_command:
+    commands:
+      - /system logging action set [find name=remote] remote={{ syslog_server }}
+      - /system logging remove [find where !default]
+      - /system logging add topics=bfd,info action=memory 
+      - /system logging add topics=ospf,info action=memory 
+      - /system logging add topics=bgp,info action=memory 
+
+
+- name: ros_webcert
+  tags: 
+    - setup
+  routeros_command:
+    commands:
+      - /certificate add name=wwwssl days-valid=768 key-size=4096 common-name={{ inventory_hostname }}
+      - /certificate sign [find name name=wwwssl] 
+      - /ip service www-ssl certificate=wwwssl disabled=no
+
+
+- name: ros_reboot
+  tags:
+    - reboot
+  routeros_command:
+    commands: /system reboot
+
+

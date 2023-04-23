@@ -2,8 +2,7 @@
 # RouterOS 7 VPLS tunnel-builder 
 #
 - name: vpls_config
-  tags:
-    - vpls
+  tags: vpls
   include_vars: vars/routeros_tunnel.yaml
 
 
@@ -11,8 +10,7 @@
 # un-deploy tasks
 #
 - name: vpls_remove_spoke
-  tags:
-    - vpls
+  tags: vpls
   routeros_command:
     commands:
       - /interface/bridge/port remove [find interface={{ item.end_intf }}]
@@ -27,11 +25,10 @@
 
 # un-deploy on hub bridge
 - name: vpls_remove_hub_br
-  tags:
-    - vpls
+  tags: vpls
   routeros_command:
     commands:
-      #- /interface/bridge/port remove [find interface=vpls-{{ item.service_id }}-{{ item.tun_id }}]
+      - /interface/bridge/port remove [find interface=vpls-{{ item.service_id }}-{{ item.tun_id }}]
       - /interface/vpls remove [find name=vpls-{{ item.service_id }}-{{ item.tun_id }}]
   loop: "{{ ros_tunnel }}"
   when:
@@ -42,8 +39,7 @@
 
 # un-deploy on hub vrf
 - name: vpls_remove_hub_vrf
-  tags:
-    - vpls
+  tags: vpls
   routeros_command:
     commands:
       - /ip/address remove [find interface=vpls-{{ item.service_id }}-{{ item.tun_id }}]
@@ -61,8 +57,7 @@
 # deploy tasks
 #
 - name: vpls_deploy_spoke
-  tags:
-    - vpls
+  tags: vpls
   routeros_command:
     commands:
       - /interface/bridge add name=br-{{ item.service_id }} arp=disabled protocol=none \
@@ -70,7 +65,7 @@
       - /interface/vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} \
         peer={{ lookup('dig', item.hub_node) }} \
         vpls-id={{ item.service_id }}:{{ item.tun_id }} \
-        pw-l2mtu={{ vpls_l2mtu }} pw-control-word=default disabled=no \
+        {{ vpls7_options }} \
         bridge=br-{{ item.service_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface/bridge/port add bridge=br-{{ item.service_id }} interface={{ item.end_intf }}
@@ -83,14 +78,13 @@
 
 # deploy on hub bridge
 - name: vpls_deploy_hub_br
-  tags:
-    - vpls
+  tags: vpls
   routeros_command:
     commands:
       - /interface/vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} \
         peer={{ lookup('dig', item.end_node) }} \
         vpls-id={{ item.service_id }}:{{ item.tun_id }} \
-        pw-l2mtu={{ vpls_l2mtu }} pw-control-word=default disabled=no \
+        {{ vpls7_options }} \
         bridge=br-{{ item.service_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
   loop: "{{ ros_tunnel }}"
@@ -102,14 +96,13 @@
 
 # deploy on hub vrf
 - name: vpls_deploy_hub_vrf
-  tags:
-    - vpls
+  tags: vpls
   routeros_command:
     commands:
       - /interface/vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} \
         peer={{ lookup('dig', item.end_node) }} \
         vpls-id={{ item.service_id }}:{{ item.tun_id }} \
-        pw-l2mtu={{ vpls_l2mtu }} pw-control-word=default disabled=no \
+        {{ vpls7_options }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface/list/member add list=vrf{{ item.service_id }} interface=vpls-{{ item.service_id }}-{{ item.tun_id }}
       - /ip/address add address={{ item.hub_address }} interface=vpls-{{ item.service_id }}-{{ item.tun_id }}
