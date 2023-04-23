@@ -1,19 +1,33 @@
-RouterOS Ansible Provider tools
-===============================
+# RouterOS Ansible Provider tools
 
-This is a set of tasks and data strucutres to manage a large set of Layer2 or Layer3/VRF-attached tunnels.
+This is a set of tasks and data strucutres to manage a large set of Layer2 or Layer3/VRF-attached tunnels. This should be seen more as a proof-of-concept or inspiration.
+
+### Current focus ###
+
+  - Orcehstrate a large set of L2 tunnels, bridges and VRFs, thus creating virtul services across a network.
+  - Orchestrate a large set of L2 tunnels, bridges and VRFs, thus creating virtual services across a network
+  - Manage VLAN interfaces
+  - Manage directly routed networks/subnets
+  - Manage directly routed networks/subnets via OSPF or BGP
+  - General and common settings
+  - Both RouterOS 6 and 7 compability
+
+### Future goals ###
+
+  - Users and security
+  - Switches, VLANs and bridges
+  - Additional tunnel settings
 
 
 
-Tunnels types
--------------
+### Tunnels types ###
 
-  * "l2t" - Simple Layer 2 tunnel
-  * "l2br" - Bridged Layer 2 tunnel
-  * "l3t" - Simple Layer 3 tunnel
-  * eoip - Plain EoIP tunnel
-  * eoip_ap - Active/Passive setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
-  * vpls - Plain VPLS tunnel
+  - "l2t" - Simple Layer 2 tunnel
+  - "l2br" - Bridged Layer 2 tunnel
+  - "l3t" - Simple Layer 3 tunnel
+  - eoip - Plain EoIP tunnel
+  - eoip_ap - Active/Passive setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
+  - vpls - Plain VPLS tunnel
 
 
     service_id                       Service ID, Bridge ID, VRF IF
