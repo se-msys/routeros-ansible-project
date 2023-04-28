@@ -4,8 +4,8 @@ This is a set of tasks and data strucutres to manage a large set of Layer2 or La
 
 ### Current focus ###
 
-  - Orcehstrate a large set of L2 tunnels, bridges and VRFs, thus creating virtul services across a network.
-  - Orchestrate a large set of L2 tunnels, bridges and VRFs, thus creating virtual services across a network
+  - Orchestrate a large set of L2 tunnels, bridges and VRFs, thus creating virtual services across a network.
+  - Orchestrate a large set of L2 tunnels, bridges and VRFs, thus creating virtual services across a network.
   - Manage VLAN interfaces
   - Manage directly routed networks/subnets
   - Manage directly routed networks/subnets via OSPF or BGP
@@ -19,20 +19,21 @@ This is a set of tasks and data strucutres to manage a large set of Layer2 or La
   - Additional tunnel settings
 
 
+### Service types ###
 
-### Tunnels types ###
+  - **l2t** - Simple Layer 2 tunnel
+  - **l2br** - Bridged Layer 2 tunnel
+  - **l3t** - Simple Layer 3 tunnel
 
-  - "l2t" - Simple Layer 2 tunnel
-  - "l2br" - Bridged Layer 2 tunnel
-  - "l3t" - Simple Layer 3 tunnel
-  - eoip - Plain EoIP tunnel
-  - eoip_ap - Active/Passive setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
-  - vpls - Plain VPLS tunnel
+### Tunnel types ###
 
+  - **eoip** - Plain EoIP tunnel
+  - **eoip_ap** - Active/Passive setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
+  - **vpls** - Plain VPLS tunnel
 
-### Tunnels options ###
+### Tunnel options ###
 
-    service_id                       Service ID, Bridge ID, VRF IF
+    service_id                       Service ID, Bridge ID or VRF ID
     service_type                     Type of tunnel
     tun_id                           ID of this tunnel within Service ID
     type                             Type of tunnel
