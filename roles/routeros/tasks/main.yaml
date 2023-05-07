@@ -32,9 +32,9 @@
   tags: eoip
   import_tasks: roles/routeros/tasks/eoip.yaml
 
-- name: ros_eoip_ap
+- name: ros_eoip_ab
   tags: eoip
-  import_tasks: roles/routeros/tasks/eoip_ap.yaml
+  import_tasks: roles/routeros/tasks/eoip_ab.yaml
 
 - name: ros_vpls
   tags: vpls

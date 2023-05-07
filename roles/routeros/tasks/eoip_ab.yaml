@@ -1,5 +1,5 @@
 #
-# RouterOS EoIP Active/Passive tunnel-builder 
+# RouterOS EoIP Active/Backup tunnel-builder 
 #
 - name: eoip_config
   tags: eoip
@@ -19,7 +19,7 @@
       - /interface bridge remove [find name=br-{{ item.service_id }}]
   loop: "{{ ros_tunnel }}"
   when:
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "absent"
     - item.end_node == inventory_hostname
 
@@ -34,12 +34,12 @@
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l2t"
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "absent"
     - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
 
 
-# un-deploy on hub L2T
+# un-deploy on hub L2BR
 - name: eoip_remove_hub_l2br
   tags: eoip
   routeros_command:
@@ -50,7 +50,7 @@
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l2br"
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "absent"
     - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
 
@@ -66,30 +66,35 @@
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l3t"
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "absent"
     - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
+
+
 
 
 #
 # *** Deploy tasks ***
 #
+
+# deploy on spoke
 - name: eoip_deploy_spoke
   tags: eoip
   routeros_command:
     commands:
-      - /interface bridge add name=br-{{ item.service_id }} \
+      - /interface bridge add name=br-{{ item.service_id }} arp=disabled \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
-      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} \
+      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] \
         local-address={{ lookup('dig', item.end_node) }} \
         remote-address={{ item.hub_source }} \
-        tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
+        tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} disabled=no \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface bridge port add bridge=br-{{ item.service_id }} interface=eoip-{{ item.service_id }}-{{ item.tun_id }}
       - /interface bridge port add bridge=br-{{ item.service_id }} interface={{ item.end_intf }}
   loop: "{{ ros_tunnel }}"
   when:
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "present"
     - item.end_node == inventory_hostname
 
@@ -99,8 +104,9 @@
   tags: eoip
   routeros_command:
     commands:
-      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} \
-        local-address={{ item.hub_source }} disabled=yes \
+      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=yes \
+        local-address={{ item.hub_source }} \
         remote-address={{ lookup('dig', item.end_node) }} \
         tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
@@ -108,7 +114,7 @@
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l2t"
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "present"
     - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
 
@@ -118,8 +124,9 @@
   tags: eoip
   routeros_command:
     commands:
-      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} \
-        local-address={{ item.hub_source }} disabled=yes \
+      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=yes \
+        local-address={{ item.hub_source }} \
         remote-address={{ lookup('dig', item.end_node) }} \
         tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
@@ -128,7 +135,7 @@
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l2br"
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "present"
     - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
 
@@ -139,8 +146,9 @@
   tags: eoip
   routeros_command:
     commands:
-      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} \
-        local-address={{ item.hub_source }} disabled=yes \
+      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=yes \
+        local-address={{ item.hub_source }} \
         remote-address={{ lookup('dig', item.end_node) }} \
         tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
@@ -149,15 +157,12 @@
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l3t"
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "present"
     - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
 
 
-
-#
-# set active/passive state
-#
+# enable tunnel on primary hub
 - name: eoip_hub_primary_state
   tags: eoip
   routeros_command:
@@ -165,10 +170,11 @@
       - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=no
   loop: "{{ ros_tunnel }}"
   when:
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "present"
     - item.hub_primary == inventory_hostname
 
+# disable tunnel on backup hub
 - name: eoip_hub_backup_state
   tags: eoip
   routeros_command:
@@ -176,11 +182,9 @@
       - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=yes
   loop: "{{ ros_tunnel }}"
   when:
-    - item.type == "eoip_ap"
+    - item.type == "eoip_ab"
     - item.state == "present"
     - item.hub_backup == inventory_hostname
-
-
 
 
 
