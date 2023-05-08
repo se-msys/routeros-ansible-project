@@ -7,7 +7,7 @@
 
 
 #
-# un-deploy tasks
+# Un-deploy tasks
 #
 - name: vpls_remove_spoke
   tags: vpls
@@ -23,8 +23,8 @@
     - item.end_node == inventory_hostname
 
 
-# un-deploy on hub bridge
-- name: vpls_remove_hub_br
+# un-deploy on hub l2t
+- name: vpls_remove_hub_l2t
   tags: vpls
   routeros_command:
     commands:
@@ -32,13 +32,14 @@
       - /interface/vpls remove [find name=vpls-{{ item.service_id }}-{{ item.tun_id }}]
   loop: "{{ ros_tunnel }}"
   when:
-    - item.service_type == "br"
+    - item.service_type == "l2t"
     - item.type == "vpls"
     - item.state == "absent"
     - item.hub_node == inventory_hostname
 
-# un-deploy on hub vrf
-- name: vpls_remove_hub_vrf
+
+# un-deploy on hub l3t
+- name: vpls_remove_hub_l3t
   tags: vpls
   routeros_command:
     commands:
@@ -47,14 +48,14 @@
       - /interface/vpls remove [find name=vpls-{{ item.service_id }}-{{ item.tun_id }}]
   loop: "{{ ros_tunnel }}"
   when:
-    - item.service_type == "vrf"
+    - item.service_type == "l3t"
     - item.type == "vpls"
     - item.state == "absent"
     - item.hub_node == inventory_hostname
 
 
 #
-# deploy tasks
+# Deploy tasks
 #
 - name: vpls_deploy_spoke
   tags: vpls

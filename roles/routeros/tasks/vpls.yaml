@@ -1,13 +1,14 @@
 #
-# RouterOS VPLS 6 tunnel-builder 
+# RouterOS VPLS tunnel-builder 
 #
 - name: vpls_config
   tags: vpls
   include_vars: vars/routeros_tunnel.yaml
 
 
+
 #
-# un-deploy tasks
+# Un-deploy tasks
 #
 - name: vpls_remove_spoke
   tags: vpls
@@ -24,8 +25,8 @@
     - item.end_node == inventory_hostname
 
 
-# un-deploy on hub bridge
-- name: vpls_remove_hub_br
+# un-deploy on hub l2t
+- name: vpls_remove_hub_l2t
   tags: vpls
   routeros_command:
     commands:
@@ -33,7 +34,7 @@
       - /interface vpls remove [find name=vpls-{{ item.service_id }}-{{ item.tun_id }}]
   loop: "{{ ros_tunnel }}"
   when:
-    - item.service_type == "br"
+    - item.service_type == "l2t"
     - item.type == "vpls"
     - item.state == "absent"
     - item.hub_node == inventory_hostname
@@ -41,7 +42,7 @@
 
 
 #
-# deploy tasks
+# Deploy tasks
 #
 - name: vpls_deploy_spoke
   tags: vpls
@@ -49,7 +50,7 @@
     commands:
       - /interface bridge add name=br-{{ item.service_id }} arp=disabled protocol=none \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
-      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} \
+      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} arp=disabled disabled=no \
         remote-peer={{ lookup('dig', item.hub_node) }} \
         vpls-id={{ item.service_id }}:{{ item.tun_id }} {{ vpls_options }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
@@ -62,19 +63,19 @@
     - item.end_node == inventory_hostname
 
 
-# deploy on hub bridge
-- name: vpls_deploy_hub_br
+# deploy on hub l2t
+- name: vpls_deploy_hub_l2t
   tags: vpls
   routeros_command:
     commands:
-      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} \
+      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} arp=disabled disabled=no \
         remote-peer={{ lookup('dig', item.end_node) }} \
         vpls-id={{ item.service_id }}:{{ item.tun_id }} {{ vpls_options }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface bridge port add bridge=br-{{ item.service_id }} interface=vpls-{{ item.service_id }}-{{ item.tun_id }} 
   loop: "{{ ros_tunnel }}"
   when:
-    - item.service_type == "br"
+    - item.service_type == "l2t"
     - item.type == "vpls"
     - item.state == "present"
     - item.hub_node == inventory_hostname

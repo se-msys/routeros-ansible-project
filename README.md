@@ -67,9 +67,14 @@ The hubs should share a floating IP-adress of some kind, for example with VRRP. 
 This is primarly to make sure that the tunnel subnet is removed from the routing table (most likley a VRF) when tunnel is not longer runnning. If you plan to use Bridged Layer2 services, you should provide a direct link between the hubs. This link can also house the VRRP-adress on a VLAN-interface.
 
 
+### EoIP (Ethernet-over-IP) considerations ###
 
+Mikrotik EoIP tunnels uses a 16-bit (1-65,535) Tunnel ID. Because of this you will need to decide early if you are going to settle two digit or three digit services (1-64 or 1-649). These ansible tasks concatenates the service ID with the tunnel ID to form a tunnel ID, but it can never go above 65,535. So:
 
+  * 2 digit services will result in more possible tunnels (1-999 per service)
+  * 3 digit services will result in fewer possible tunnels (1-99 per service)
 
+VPLS uses a 2byte + 4byte or 4byte + 2byte identifier, so it doesn't suffer from the same restrictions.
 
 
 

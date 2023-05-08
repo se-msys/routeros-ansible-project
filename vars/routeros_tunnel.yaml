@@ -4,27 +4,27 @@
 ros_tunnel:
 
   # L2 services
-  - service_id: 101
+  - service_id: 11
     service_type: l2t
     tun_id: 1
     type: eoip
     hub_node: chr1
     end_node: chr8
-    end_intf: ether6
+    end_intf: ether7
     comment: "tunnel between chr1 and chr8"
     state: absent
 
-  - service_id: 101
+  - service_id: 11
     service_type: l2t
     tun_id: 2
     type: eoip
     hub_node: chr2
     end_node: chr8
-    end_intf: ether6
-    comment: "tunnel between chr1 and chr8"
+    end_intf: ether7
+    comment: "tunnel between chr2 and chr8"
     state: absent
 
-  - service_id: 102
+  - service_id: 12
     service_type: l2t
     tun_id: 1
     type: eoip_ab                           
@@ -36,7 +36,7 @@ ros_tunnel:
     comment: "Active/Passive tunnel"
     state: absent
 
-  - service_id: 102
+  - service_id: 12
     service_type: l2t
     tun_id: 2
     type: eoip_ab                           
@@ -45,26 +45,26 @@ ros_tunnel:
     hub_source: 172.30.255.1
     end_node: chr7
     end_intf: ether7
-    comment: "Active/Passive tunnel"
+    comment: "Active/Bckup tunnel"
     state: absent
 
-  - service_id: 103
+  - service_id: 13
     service_type: l2br
     tun_id: 1
     type: eoip_ab                           
     hub_primary: chr1
     hub_backup: chr2
     hub_source: 172.30.255.1
-    hub_vlan: 103
+    hub_vlan: 1013
     end_node: chr8
     end_intf: ether7
-    comment: "Bridged tunnel"
+    comment: "Active/Bckup Bridged tunnel"
     state: absent
 
 
 
   # L3 services
-  - service_id: 201
+  - service_id: 21
     service_type: l3t
     tun_id: 1
     type: eoip
@@ -75,7 +75,7 @@ ros_tunnel:
     comment: "tunnel between chr1 and chr8"
     state: absent
 
-  - service_id: 201
+  - service_id: 21
     service_type: l3t
     tun_id: 2
     type: eoip
@@ -83,10 +83,10 @@ ros_tunnel:
     hub_address: 10.201.1.2/28
     end_node: chr8
     end_intf: ether7
-    comment: "tunnel between chr1 and chr8"
+    comment: "tunnel between chr2 and chr8"
     state: absent
 
-  - service_id: 202
+  - service_id: 22
     service_type: l3t
     tun_id: 1
     type: eoip_ab                           
@@ -96,10 +96,10 @@ ros_tunnel:
     hub_address: 10.202.1.1/28
     end_node: chr8
     end_intf: ether7
-    comment: "Active/Standby tunnel"
+    comment: "Active/Backup tunnel"
     state: absent
 
-  - service_id: 202
+  - service_id: 22
     service_type: l3t
     tun_id: 2
     type: eoip_ab                           
@@ -109,8 +109,22 @@ ros_tunnel:
     hub_address: 10.202.2.1/28
     end_node: chr7
     end_intf: ether7
-    comment: "Active/Standby tunnel"
+    comment: "Active/Backup tunnel"
     state: absent
+
+  - service_id: 23
+    service_type: l3t
+    tun_id: 1
+    type: eoip_ab                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_source: 172.30.255.1
+    hub_address: 10.203.1.1/28
+    end_node: chr7
+    end_intf: ether7
+    comment: "Active/Backup tunnel"
+    state: absent
+
 
 
 

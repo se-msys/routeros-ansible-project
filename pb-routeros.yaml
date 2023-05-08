@@ -1,0 +1,7 @@
+
+- hosts: routeros
+  gather_facts: false
+  connection: local
+
+  roles:
+    - role: routeros

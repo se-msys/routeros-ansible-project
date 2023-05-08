@@ -88,7 +88,7 @@
       - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] \
         local-address={{ lookup('dig', item.end_node) }} \
         remote-address={{ item.hub_source }} \
-        tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} disabled=no \
+        tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} arp=disabled disabled=no \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface bridge port add bridge=br-{{ item.service_id }} interface=eoip-{{ item.service_id }}-{{ item.tun_id }}
       - /interface bridge port add bridge=br-{{ item.service_id }} interface={{ item.end_intf }}
@@ -105,7 +105,7 @@
   routeros_command:
     commands:
       - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
-      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=yes \
+      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] arp=disabled disabled=yes \
         local-address={{ item.hub_source }} \
         remote-address={{ lookup('dig', item.end_node) }} \
         tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
@@ -125,7 +125,7 @@
   routeros_command:
     commands:
       - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
-      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=yes \
+      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] arp=disabled disabled=yes \
         local-address={{ item.hub_source }} \
         remote-address={{ lookup('dig', item.end_node) }} \
         tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
@@ -147,7 +147,7 @@
   routeros_command:
     commands:
       - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
-      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] disabled=yes \
+      - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] arp=enabled disabled=yes \
         local-address={{ item.hub_source }} \
         remote-address={{ lookup('dig', item.end_node) }} \
         tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
