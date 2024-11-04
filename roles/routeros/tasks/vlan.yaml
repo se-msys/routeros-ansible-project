@@ -34,7 +34,7 @@
       - /interface vlan add name={{ item.node_intf }}.{{ item.vlan_id }}] interface={{ item.node_intf }} vlan-id={{ item.vlan_id }}
   loop: "{{ ros_vlan }}"
   when:
-    - item.state == "present"
+    - item.state == "new"
     - item.node == inventory_hostname
 
 

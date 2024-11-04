@@ -84,10 +84,41 @@
       - /ip service www-ssl certificate=wwwssl disabled=no
 
 
-- name: ros_reboot
-  tags:
-    - reboot
+- name: ros_firewall
+  tags: 
+    - fw
   routeros_command:
-    commands: /system reboot
+    commands:
+      - /ip firewall service-port set [find] disabled=yes
+      - /ip firewall connection tracking set enabled=no
+      - /ip firewall filter remove [find comment~"base.+"]
+      - /ip firewall address-list add address=192.168.172.0/24 list=g_mgmt
+      - /ip firewall address-list add address=192.168.3.0/24 list=g_mgmt
+      - /ip firewall address-list add address=172.30.7.0/24 list=g_loopback
+      - /ip firewall filter add action=accept chain=input comment=base-ospf protocol=ospf
+      - /ip firewall filter add action=accept chain=input comment=base-bfd protocol=udp dst-port=3784,3785
+      - /ip firewall filter add action=accept chain=input comment=base-vrrp protocol=vrrp dst-address=224.0.0.18
+      - /ip firewall filter add action=accept chain=input comment=base-bgp protocol=tcp port=179 
+      - /ip firewall filter add action=accept chain=input comment=base-ldp dst-port=646 protocol=udp
+      - /ip firewall filter add action=accept chain=input comment=base-ldp dst-port=646 protocol=tcp
+      - /ip firewall filter add action=accept chain=input comment=base-mgmt src-address-list=g_mgmt
+      - /ip firewall filter add action=accept chain=input comment=base-eoip protocol=gre src-address-list=g_loopback
+      - /ip firewall filter add action=accept chain=input comment=base-vxlan protocol=udp dst-port=4789,8472 src-address-list=g_loopback
+      - /ip firewall filter add action=accept chain=input comment=base-mndp dst-address=255.255.255.255 dst-port=5678 protocol=udp src-port=5678
+      - /ip firewall filter add action=accept chain=input comment=base-mactel src-address=0.0.0.0 dst-address=255.255.255.255 dst-port=20561 protocol=udp src-port=20561
+      - /ip firewall filter add action=accept chain=input comment=base-icmp protocol=icmp
+      - /ip firewall filter add action=accept chain=input comment=base-ntp dst-port=123 protocol=udp
+      - /ip firewall filter add action=drop chain=input comment=base-drop log-prefix=DROP log=yes
+
+
+- name: ros_bfd
+  tags: 
+    - bfd
+  routeros_command:
+    commands:
+      - /routing/ospf/interface-template set [find type=ptp] use-bfd=yes
+      - /routing bfd configuration remove [find]
+      - /routing bfd configuration add interfaces=ether2
+      - /routing bfd configuration add interfaces=ether3
 
 

@@ -65,18 +65,18 @@
     commands:
       - /interface bridge add name=br-{{ item.service_id }} arp=disabled \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
-      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} {{ eoip_options }} remote-address=0.0.0.0 tunnel-id=0
       - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] arp=disabled disabled=no \
         local-address={{ lookup('dig', item.end_node) }} \
         remote-address={{ lookup('dig', item.hub_node) }} \
-        tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
+        tunnel-id={{ item.service_id }}{{ item.tun_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface bridge port add bridge=br-{{ item.service_id }} interface=eoip-{{ item.service_id }}-{{ item.tun_id }}
       - /interface bridge port add bridge=br-{{ item.service_id }} interface={{ item.end_intf }}
   loop: "{{ ros_tunnel }}"
   when:
     - item.type == "eoip"
-    - item.state == "present"
+    - item.state == "new"
     - item.end_node == inventory_hostname
 
 
@@ -85,18 +85,18 @@
   tags: eoip
   routeros_command:
     commands:
-      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} {{ eoip_options }} remote-address=0.0.0.0 tunnel-id=0
       - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] arp=disabled disabled=no \
         local-address={{ lookup('dig', item.hub_node) }} \
         remote-address={{ lookup('dig', item.end_node) }} \
-        tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
+        tunnel-id={{ item.service_id }}{{ item.tun_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface bridge port add bridge=br-{{ item.service_id }} interface=eoip-{{ item.service_id }}-{{ item.tun_id }} 
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l2t"
     - item.type == "eoip"
-    - item.state == "present"
+    - item.state == "new"
     - item.hub_node == inventory_hostname
 
 
@@ -105,11 +105,11 @@
   tags: eoip
   routeros_command:
     commands:
-      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface eoip add name=eoip-{{ item.service_id }}-{{ item.tun_id }} {{ eoip_options }} remote-address=0.0.0.0 tunnel-id=0
       - /interface eoip set [find name=eoip-{{ item.service_id }}-{{ item.tun_id }}] arp=enabled disabled=no \
         local-address={{ lookup('dig', item.hub_node) }} \
         remote-address={{ lookup('dig', item.end_node) }} \
-        tunnel-id={{ item.service_id }}{{ item.tun_id }} {{ eoip_options }} \
+        tunnel-id={{ item.service_id }}{{ item.tun_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface list member add list=vrf-{{ item.service_id }} interface=eoip-{{ item.service_id }}-{{ item.tun_id }}
       - /ip address add address={{ item.hub_address }} interface=eoip-{{ item.service_id }}-{{ item.tun_id }}
@@ -117,7 +117,7 @@
   when:
     - item.service_type == "l3t"
     - item.type == "eoip"
-    - item.state == "present"
+    - item.state == "new"
     - item.hub_node == inventory_hostname
 
 

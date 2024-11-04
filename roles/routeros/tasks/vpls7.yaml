@@ -73,7 +73,7 @@
   loop: "{{ ros_tunnel }}"
   when:
     - item.type == "vpls"
-    - item.state == "present"
+    - item.state == "new"
     - item.end_node == inventory_hostname
 
 
@@ -82,17 +82,16 @@
   tags: vpls
   routeros_command:
     commands:
-      - /interface/vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} \
+      - /interface/vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} {{ vpls7_options }} \
         peer={{ lookup('dig', item.end_node) }} \
         vpls-id={{ item.service_id }}:{{ item.tun_id }} \
-        {{ vpls7_options }} \
         bridge=br-{{ item.service_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "br"
     - item.type == "vpls"
-    - item.state == "present"
+    - item.state == "new"
     - item.hub_node == inventory_hostname
 
 # deploy on hub vrf
@@ -100,10 +99,9 @@
   tags: vpls
   routeros_command:
     commands:
-      - /interface/vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} \
+      - /interface/vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} {{ vpls7_options }} \
         peer={{ lookup('dig', item.end_node) }} \
         vpls-id={{ item.service_id }}:{{ item.tun_id }} \
-        {{ vpls7_options }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface/list/member add list=vrf{{ item.service_id }} interface=vpls-{{ item.service_id }}-{{ item.tun_id }}
       - /ip/address add address={{ item.hub_address }} interface=vpls-{{ item.service_id }}-{{ item.tun_id }}
@@ -111,7 +109,7 @@
   when:
     - item.service_type == "vrf"
     - item.type == "vpls"
-    - item.state == "present"
+    - item.state == "new"
     - item.hub_node == inventory_hostname
 
 

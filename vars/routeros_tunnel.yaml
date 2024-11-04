@@ -127,5 +127,79 @@ ros_tunnel:
 
 
 
+#
+# VXLAN
+#
+  - service_id: 42
+    service_type: l2br
+    type: vxlan                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_interface: ether7
+    end_node: chr8
+    end_intf: ether7
+    comment: "L2 Active/Active tunnel"
+    state: absent
+
+  - service_id: 101
+    service_type: l2br
+    type: vxlan                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_interface: ether7
+    end_node: chr8
+    end_intf: ether7
+    comment: "L2 Active/Active tunnel"
+    state: absent
+
+  - service_id: 45
+    service_type: l3t
+    type: vxlan                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_address: 192.168.45.1/28
+    hub_interface: ether7
+    end_node: chr7
+    end_intf: ether7
+    comment: "L3 tunnel"
+    state: absent
+
+  - service_id: 52
+    service_type: l3t
+    type: vxlan                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_address: 192.168.45.1/28
+    hub_interface: ether7
+    end_node: chr7
+    end_intf: ether7
+    comment: "L3 tunnel"
+    state: absent
+
+  - service_id: 52
+    service_type: l3t
+    type: vxlan                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_address: 192.168.45.1/28
+    hub_interface: ether7
+    end_node: chr8
+    end_intf: ether7
+    comment: "L3 tunnel"
+    state: absent
+
+  - service_id: 77
+    service_type: l3t
+    type: vxlan                           
+    hub_primary: chr1
+    hub_backup: chr2
+    hub_address: 192.168.77.1/28
+    hub_interface: ether7
+    end_node: chr7
+    end_intf: ether7
+    comment: "L3 tunnel"
+    state: absent
+
+
 
 

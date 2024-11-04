@@ -61,6 +61,19 @@
     - ros_ver.stdout is search("7\..+")
 
 
+- name: ros_vxlan
+  tags: vxlan
+  import_tasks: roles/routeros/tasks/vxlan_hub.yaml
+  when:
+    - ros_ver.stdout is search("7\..+")
+
+- name: ros_vxlan
+  tags: vxlan
+  import_tasks: roles/routeros/tasks/vxlan_spoke.yaml
+  when:
+    - ros_ver.stdout is search("7\..+")
+
+
 #
 # DNS and DHCP
 #

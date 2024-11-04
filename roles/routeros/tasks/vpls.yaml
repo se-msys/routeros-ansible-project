@@ -50,16 +50,16 @@
     commands:
       - /interface bridge add name=br-{{ item.service_id }} arp=disabled protocol=none \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
-      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} arp=disabled disabled=no \
+      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} {{ vpls_options }} arp=disabled disabled=no \
         remote-peer={{ lookup('dig', item.hub_node) }} \
-        vpls-id={{ item.service_id }}:{{ item.tun_id }} {{ vpls_options }} \
+        vpls-id={{ item.service_id }}:{{ item.tun_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface bridge port add bridge=br-{{ item.service_id }} interface=vpls-{{ item.service_id }}-{{ item.tun_id }}
       - /interface bridge port add bridge=br-{{ item.service_id }} interface={{ item.end_intf }}
   loop: "{{ ros_tunnel }}"
   when:
     - item.type == "vpls"
-    - item.state == "present"
+    - item.state == "new"
     - item.end_node == inventory_hostname
 
 
@@ -68,16 +68,16 @@
   tags: vpls
   routeros_command:
     commands:
-      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} arp=disabled disabled=no \
+      - /interface vpls add name=vpls-{{ item.service_id }}-{{ item.tun_id }} {{ vpls_options }} arp=disabled disabled=no \
         remote-peer={{ lookup('dig', item.end_node) }} \
-        vpls-id={{ item.service_id }}:{{ item.tun_id }} {{ vpls_options }} \
+        vpls-id={{ item.service_id }}:{{ item.tun_id }} \
         comment="{{ item.service_type }};{{ item.service_id }};{{ item.tun_id }};{{ item.comment }}"
       - /interface bridge port add bridge=br-{{ item.service_id }} interface=vpls-{{ item.service_id }}-{{ item.tun_id }} 
   loop: "{{ ros_tunnel }}"
   when:
     - item.service_type == "l2t"
     - item.type == "vpls"
-    - item.state == "present"
+    - item.state == "new"
     - item.hub_node == inventory_hostname
 
 
