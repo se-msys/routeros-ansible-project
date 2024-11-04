@@ -137,7 +137,7 @@
       - /interface/vrrp add name=vrrp-vxlan{{ item.vni }} interface=vxlan{{ item.vni }} \
           version=2 vrid={{ item.vrrp_id }} priority=200
       - /interface/list/member add list=vrf{{ item.vrf }} interface=vrrp-vxlan{{ item.vni }}
-      - /ip/address add address={{ item.hub_address_vrrp }} interface=vrrp-vxlan{{ item.vni }}
+      - /ip/address add address={{ item.hub_address_vrrp }}/32 interface=vrrp-vxlan{{ item.vni }}
   loop: "{{ ros_vxlan_hub }}"
   when:
     - item.service_type == "l3vr"
@@ -153,7 +153,7 @@
       - /interface/vrrp add name=vrrp-vxlan{{ item.vni }} interface=vxlan{{ item.vni }} \
           version=2 vrid={{ item.vrrp_id }} priority=100
       - /interface/list/member add list=vrf{{ item.vrf }} interface=vrrp-vxlan{{ item.vni }}
-      - /ip/address add address={{ item.hub_address_vrrp }} interface=vrrp-vxlan{{ item.vni }}
+      - /ip/address add address={{ item.hub_address_vrrp }}/32 interface=vrrp-vxlan{{ item.vni }}
   loop: "{{ ros_vxlan_hub }}"
   when:
     - item.service_type == "l3vr"

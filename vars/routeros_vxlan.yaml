@@ -3,7 +3,6 @@
 #
 #   l2b    Layer 2 Bridge Hub
 #   l2ptp  Layer 2 Point-to-Point 
-#   l3t    Layer 3 tunnel between hubs and single endpoint (for using with dynamic routing)
 #   l3vr   Layer 3 tunnel between hubs with VRRP and single endpoint
 #
 #   L3 tunnels requires VRF to created in advance
@@ -19,24 +18,7 @@ ros_vxlan_hub:
     service_type: l2b
     hub_interface: ether7
     comment: "Some L2 service"
-    state: new   
-
-
-  - vni: 301
-    vrf: 77
-    service_type: l3t
-    hub_address_a: 10.77.31.2/24
-    hub_address_b: 10.77.31.3/24
-    comment: "Some L3 service for use with OSFP"
-    state: new
-
-  - vni: 302
-    vrf: 77
-    service_type: l3t
-    hub_address_a: 10.77.32.2/24
-    hub_address_b: 10.77.32.3/24
-    comment: "Some L3 service for use with OSFP"
-    state: new
+    state: create   
 
 
   - vni: 501
@@ -44,20 +26,20 @@ ros_vxlan_hub:
     service_type: l3vr
     hub_address_a: 10.77.51.2/24
     hub_address_b: 10.77.51.3/24
-    hub_address_vrrp: 10.77.51.1/24
+    hub_address_vrrp: 10.77.51.1
     vrrp_id: 2
     comment: "Some L3 service with VRRP"
-    state: new
+    state: create
 
   - vni: 502
     vrf: 77
     service_type: l3vr
     hub_address_a: 10.77.52.2/24
     hub_address_b: 10.77.52.3/24
-    hub_address_vrrp: 10.77.52.1/24
+    hub_address_vrrp: 10.77.52.1
     vrrp_id: 2
     comment: "Some L3 service with VRRP"
-    state: new
+    state: create
 
 
 
@@ -73,39 +55,26 @@ ros_vxlan:
     endpoint: chr7
     endpoint_interface: ether7
     comment: "L2 Bridge Hubs-to-Point"
-    state: new
+    state: create
 
   - vni: 101
     endpoint: chr8
     endpoint_interface: ether7
     comment: "L2 Bridge Hubs-to-Point"
-    state: new
-
-
-  - vni: 301
-    endpoint: chr7
-    endpoint_interface: ether2.301
-    comment: "L3 VRF for dynamic routing"
-    state: new
-
-  - vni: 302
-    endpoint: chr8
-    endpoint_interface: ether2.302
-    comment: "L3 VRF for dynamic routing"
-    state: new
+    state: create
 
 
   - vni: 501
     endpoint: chr7
     endpoint_interface: ether2.501
     comment: "L3 VRF with VRRP"
-    state: new
+    state: create
 
   - vni: 502
     endpoint: chr8
     endpoint_interface: ether2.502
     comment: "L3 VRF with VRRP"
-    state: new
+    state: create
 
 
 

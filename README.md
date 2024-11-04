@@ -16,7 +16,7 @@ This is a set of tasks and data strucutres to manage a large set of Layer2 or La
 ### Future plans ###
 
   - Users and security
-  - Switches, VLANs and bridges
+  - Switching, VLANs and Bridges
   - Additional tunnel settings
 
 
@@ -33,6 +33,14 @@ This is a set of tasks and data strucutres to manage a large set of Layer2 or La
   - **eoip_ab** - Active/Backup setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
   - **vpls** - Plain VPLS tunnel
   - **vpls_ab** - Active/Backup setup of a VPLS-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
+  - **vxlan** - Enables Hub to Spoke or Spoke-to-Spoke L2VPN with over IP
+
+
+### Notes on VXLAN ###
+
+  * VRFs has to be created in advance with an according interface-list.
+  * VRFs has to be numeric.
+  * A bridge named `vxbridge` has to be created in advance on the hubs.
 
 
 ### Tunnel options ###
