@@ -69,9 +69,18 @@
 
 - name: ros_vxlan
   tags: vxlan
-  import_tasks: roles/routeros/tasks/vxlan_spoke.yaml
+  import_tasks: roles/routeros/tasks/vxlan_etree.yaml
   when:
     - ros_ver.stdout is search("7\..+")
+
+
+- name: ros_vxlan
+  tags: vxlan
+  import_tasks: roles/routeros/tasks/vxlan_eline.yaml
+  when:
+    - ros_ver.stdout is search("7\..+")
+
+
 
 
 #
@@ -86,14 +95,10 @@
   import_tasks: roles/routeros/tasks/dhcp.yaml
 
 
-#
-#- name: Print the transformed variable
-#  ansible.builtin.debug:
-#    msg: '{{ item }}'
-#  loop: '{{ result.stdout | from_yaml_all | list }}'
-#
 
-
+#
+# Mixed
+#
 - name: ros_misc
   tags: misc
   import_tasks: roles/routeros/tasks/misc.yaml

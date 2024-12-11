@@ -1,0 +1,16 @@
+#
+# RouterOS VXLAN inventory
+# Point-to-point E-Line services
+#
+
+ros_vxlan_eline:
+  - vni: 1004
+    bridge_vlan: 1004
+    node_a: chr2
+    node_a_interface: ether7
+    node_b: chr8
+    node_b_interface: ether7
+    comment: "Customer-to-customer-link"
+    state: create
+
+

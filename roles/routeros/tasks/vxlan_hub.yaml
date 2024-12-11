@@ -1,26 +1,11 @@
 #
 # RouterOS VXLAN tunnel-builder 
-# Tasks that relate to the hubs
+# Tasks that related to the hubs
 #
 - name: vxlan_config
   tags: vxlan
-  include_vars: vars/routeros_vxlan.yaml
+  include_vars: vars/routeros_vxlan_hub.yaml
 
-
-
-# remove vrrp instance on hub
-- name: vxlan_hub_remove_vrrp
-  tags: vxlan
-  routeros_command:
-    commands:
-      - /ip/address remove [find interface=vrrp-vxlan{{ item.vni }}]
-      - /interface/list/member remove [find interface=vrrp-vxlan{{ item.vni }}]
-      - /interface/vrrp remove [find name=vrrp-vxlan{{ item.vni }}]
-  loop: "{{ ros_vxlan_hub }}"
-  when:
-    - item.service_type == "l3vr"
-    - item.state == "absent"
-    - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
 
 
 # remove hub configuration
@@ -28,11 +13,9 @@
   tags: vxlan
   routeros_command:
     commands:
-      - /interface/bridge/vlan remove [find bridge={{ vxlan_bridge }} vlan-ids={{ item.vni }}]
-      - /interface/bridge/port remove [find bridge={{ vxlan_bridge }} interface=vxlan{{ item.vni }}]
-      - /interface/bridge/port remove [find bridge={{ vxlan_bridge }} pvid={{ item.vni }}]
-      - /ip/address remove [find interface=vxlan{{ item.vni }}]
-      - /interface/list/member remove [find interface=vxlan{{ item.vni }}]
+      - /interface/bridge/vlan remove [find bridge={{ item.bridge|default('vxbridge') }} vlan-ids={{ item.bridge_vlan }}]
+      - /interface/bridge/port remove [find bridge={{ item.bridge|default('vxbridge') }} interface=vxlan{{ item.vni }}]
+      - /interface/bridge/port remove [find bridge={{ item.bridge|default('vxbridge') }} pvid={{ item.vni }}]
       - /interface/vxlan/vteps remove [find name=vxlan{{ item.vni }}]
       - /interface/vxlan remove [find name=vxlan{{ item.vni }}]
   loop: "{{ ros_vxlan_hub }}"
@@ -41,123 +24,51 @@
     - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
 
 
-
-# deploy on hub A
+# Bridge: deploy on hub A
 - name: vxlan_hub_deploy_a
   tags: vxlan
   routeros_command:
     commands:
-      - /interface/vxlan/vteps remove [find interface=vxlan{{ item.vni }} remote-ip={{ lookup('dig', vxlan_hub_b) }}]
       - /interface/vxlan add name=vxlan{{ item.vni }} {{ vxlan_options }} \
           local-address={{ lookup('dig', inventory_hostname) }} vni={{ item.vni }} \
-          comment="{{ item.service_type }};{{ item.vni }};{{ item.comment }}"
-      - /interface/vxlan/vteps add interface=vxlan{{ item.vni }} remote-ip={{ lookup('dig', vxlan_hub_b) }}
+          comment="{{ item.comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ item.vni }} {{ vxlan_vtep_options }} \
+          remote-ip={{ lookup('dig', vxlan_hub_b) }} \
+          comment="{{ vxlan_hub_b }};{{ item.comment }}"
   loop: "{{ ros_vxlan_hub }}"
   when:
-    - item.state == "new"
+    - item.state == "create"
     - vxlan_hub_a == inventory_hostname
 
 
-# deploy on hub B
+# Bridge: deploy on hub B
 - name: vxlan_hub_deploy_b
   tags: vxlan
   routeros_command:
     commands:
-      - /interface/vxlan/vteps remove [find interface=vxlan{{ item.vni }} remote-ip={{ lookup('dig', vxlan_hub_a) }}]
       - /interface/vxlan add name=vxlan{{ item.vni }} {{ vxlan_options }} \
           local-address={{ lookup('dig', inventory_hostname) }} vni={{ item.vni }} \
-          comment="{{ item.service_type }};{{ item.vni }};{{ item.comment }}"
-      - /interface/vxlan/vteps add interface=vxlan{{ item.vni }} remote-ip={{ lookup('dig', vxlan_hub_a) }}
+          comment="{{ item.comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ item.vni }} {{ vxlan_vtep_options }} \
+          remote-ip={{ lookup('dig', vxlan_hub_a) }} \
+          comment="{{ vxlan_hub_a }};{{ item.comment }}"
   loop: "{{ ros_vxlan_hub }}"
   when:
-    - item.state == "new"
+    - item.state == "create"
     - vxlan_hub_b == inventory_hostname
 
 
 
-
-
-# L2B: deploy on hub
-- name: vxlan_hub_deploy_l2b
+# Bridge: deploy on hub
+- name: vxlan_hub_deploy_bridge
   tags: vxlan
   routeros_command:
     commands:
-      - /interface/bridge/port add bridge={{ vxlan_bridge }} \
-          interface=vxlan{{ item.vni }} pvid={{ item.vni }}
-      - /interface/bridge/port add bridge={{ vxlan_bridge }} \
-          interface={{ item.hub_interface }} pvid={{ item.vni }} edge=yes
-      - /interface/bridge/vlan add bridge={{ vxlan_bridge }} \
-          untagged=vxlan{{ item.vni }},{{ item.hub_interface }} vlan-ids={{ item.vni }}
+      - /interface/bridge add name={{ item.bridge|default('vxbridge') }} {{ vxlan_bridge_options }}
+      - /interface/bridge/port add bridge={{ item.bridge|default('vxbridge') }} interface=vxlan{{ item.vni }} pvid={{ item.bridge_vlan }}
+      - /interface/bridge/vlan add bridge={{ item.bridge|default('vxbridge') }} vlan-ids={{ item.bridge_vlan }} untagged=vxlan{{ item.vni }}
   loop: "{{ ros_vxlan_hub }}"
   when:
-    - item.service_type == "l2b"
-    - item.state == "new"
+    - item.state == "create"
     - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
-
-
-
-
-# L3T: deploy on hub A
-- name: vxlan_hub_deploy_l3t_a
-  tags: vxlan
-  routeros_command:
-    commands:
-      - /interface/list/member add list=vrf{{ item.vrf }} interface=vxlan{{ item.vni }}
-      - /ip/address add address={{ item.hub_address_a }} interface=vxlan{{ item.vni }} \
-          comment="{{ item.service_type }};{{ item.vni }};{{ item.comment }}"
-  loop: "{{ ros_vxlan_hub }}"
-  when:
-    - (item.service_type == "l3t" or item.service_type == "l3vr")
-    - item.state == "new"
-    - vxlan_hub_a == inventory_hostname
-
-
-# L3T: deploy on hub B
-- name: vxlan_hub_deploy_l3t_b
-  tags: vxlan
-  routeros_command:
-    commands:
-      - /interface/list/member add list=vrf{{ item.vrf }} interface=vxlan{{ item.vni }}
-      - /ip/address add address={{ item.hub_address_b }} interface=vxlan{{ item.vni }} \
-          comment="{{ item.service_type }};{{ item.vni }};{{ item.comment }}"
-  loop: "{{ ros_vxlan_hub }}"
-  when:
-    - (item.service_type == "l3t" or item.service_type == "l3vr")
-    - item.state == "new"
-    - vxlan_hub_b == inventory_hostname
-
-
-
-
-# L3VR: enable on hub a
-- name: vxlan_hub_deploy_vrrp_a
-  tags: vxlan
-  routeros_command:
-    commands:
-      - /interface/vrrp add name=vrrp-vxlan{{ item.vni }} interface=vxlan{{ item.vni }} \
-          version=2 vrid={{ item.vrrp_id }} priority=200
-      - /interface/list/member add list=vrf{{ item.vrf }} interface=vrrp-vxlan{{ item.vni }}
-      - /ip/address add address={{ item.hub_address_vrrp }}/32 interface=vrrp-vxlan{{ item.vni }}
-  loop: "{{ ros_vxlan_hub }}"
-  when:
-    - item.service_type == "l3vr"
-    - item.state == "new"
-    - vxlan_hub_a == inventory_hostname
-
-
-# L3VR: enable on hub B
-- name: vxlan_hub_deploy_vrrp_b
-  tags: vxlan
-  routeros_command:
-    commands:
-      - /interface/vrrp add name=vrrp-vxlan{{ item.vni }} interface=vxlan{{ item.vni }} \
-          version=2 vrid={{ item.vrrp_id }} priority=100
-      - /interface/list/member add list=vrf{{ item.vrf }} interface=vrrp-vxlan{{ item.vni }}
-      - /ip/address add address={{ item.hub_address_vrrp }}/32 interface=vrrp-vxlan{{ item.vni }}
-  loop: "{{ ros_vxlan_hub }}"
-  when:
-    - item.service_type == "l3vr"
-    - item.state == "new"
-    - vxlan_hub_b == inventory_hostname
-
 

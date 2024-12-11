@@ -1,0 +1,78 @@
+#
+# RouterOS VXLAN tunnel-builder
+# Tasks that related to point-to-point services
+#
+- name: vxlan_config
+  tags: vxlan
+  include_vars: vars/routeros_vxlan_eline.yaml
+
+
+
+# remove on spoke
+- name: vxlan_eline_remove
+  tags: vxlan
+  routeros_command:
+    commands:
+      - /interface/bridge/vlan remove [find bridge={{ item.bridge|default('vxbridge') }} vlan-ids={{ item.vni }}]
+      - /interface/bridge/port remove [find bridge={{ item.bridge|default('vxbridge') }} interface=vxlan{{ item.vni }}]
+      - /interface/bridge/port remove [find bridge={{ item.bridge|default('vxbridge') }} pvid={{ item.vni }}]
+      - /interface/vxlan/vteps remove [find name=vxlan{{ item.vni }}]
+      - /interface/vxlan remove [find name=vxlan{{ item.vni }}]
+  loop: "{{ ros_vxlan_eline }}"
+  when:
+    - item.state == "absent"
+    - (item.node_a == inventory_hostname or item.node_b == inventory_hostname) 
+
+
+
+# deploy on node A
+- name: vxlan_eline_deploy_a
+  tags: vxlan
+  routeros_command:
+    commands:
+      - /interface/bridge add name={{ item.bridge|default('vxbridge') }} {{ vxlan_bridge_options }}
+      - /interface/vxlan add name=vxlan{{ item.vni }} {{ vxlan_options }} \
+          vni={{ item.vni }} local-address={{ lookup('dig', item.node_a) }} \
+          comment="{{ item.comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ item.vni }} \
+          remote-ip={{ lookup('dig', item.node_b) }} {{ vxlan_vtep_options }} \
+          comment="{{ item.node_b }};{{ item.comment }}"
+      - /interface/bridge/port add bridge={{ item.bridge|default('vxbridge') }} \
+          interface=vxlan{{ item.vni }} pvid={{ item.bridge_vlan }}
+      - /interface/bridge/port add bridge={{ item.bridge|default('vxbridge') }} \
+          interface={{ item.node_a_interface }} pvid={{ item.bridge_vlan }} edge=yes
+      - /interface/bridge/vlan add bridge={{ item.bridge|default('vxbridge') }} \
+          untagged=vxlan{{ item.vni }},{{ item.node_a_interface }} vlan-ids={{ item.bridge_vlan }}
+  loop: "{{ ros_vxlan_eline }}"
+  when:
+    - item.state == "create"
+    - item.node_a == inventory_hostname
+
+
+# deploy on node B
+- name: vxlan_eline_deploy_b
+  tags: vxlan
+  routeros_command:
+    commands:
+      - /interface/bridge add name={{ item.bridge|default('vxbridge') }} {{ vxlan_bridge_options }}
+      - /interface/vxlan add name=vxlan{{ item.vni }} {{ vxlan_options }} \
+          vni={{ item.vni }} local-address={{ lookup('dig', item.node_b) }} \
+          comment="{{ item.comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ item.vni }} \
+          remote-ip={{ lookup('dig', item.node_a) }} {{ vxlan_vtep_options }} \
+          comment="{{ item.node_a }};{{ item.comment }}"
+      - /interface/bridge/port add bridge={{ item.bridge|default('vxbridge') }} \
+          interface=vxlan{{ item.vni }} pvid={{ item.bridge_vlan }}
+      - /interface/bridge/port add bridge={{ item.bridge|default('vxbridge') }} \
+          interface={{ item.node_b_interface }} pvid={{ item.bridge_vlan }} edge=yes
+      - /interface/bridge/vlan add bridge={{ item.bridge|default('vxbridge') }} \
+          untagged=vxlan{{ item.vni }},{{ item.node_b_interface }} vlan-ids={{ item.bridge_vlan }}
+  loop: "{{ ros_vxlan_eline }}"
+  when:
+    - item.state == "create"
+    - item.node_b == inventory_hostname
+
+
+
+
+
