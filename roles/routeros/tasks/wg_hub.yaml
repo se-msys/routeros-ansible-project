@@ -1,0 +1,43 @@
+#
+# RouterOS WireGuard
+# Hub tasks
+#
+
+- name: wg_deploy_hub_primary
+  tags: wireguard
+  routeros_command:
+    commands:
+      - /interface/wireguard/peers add name=spoke-{{ item.spoke }} {{ wg_peer_options }} \
+          interface=wg{{ item.id }} \
+          allowed-address={{ spoke.network }} \
+          endpoint-address={{ lookup('dig', spoke) }} \
+          endpoint-port=518{{ item.id }} \
+          public-key="{{ spoke_pubkey }}" \
+          disabled=no
+      - /ip route add comment=spoke-{{ item.spoke}} \
+          dst-address={{ spoke.network }} gateway=wg{{ item.id }} \
+          routing-table={{ item.vrf }} vrf-interface={{ item.vrf }}
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "create"
+    - (wg_hub1_primary == inventory_hostname or wg_hub2_primary == inventory_hostname)
+
+
+- name: wg_deploy_hub_backup
+  tags: wireguard
+  routeros_command:
+    commands:
+      - /interface/wireguard/peers add name=spoke-{{ item.spoke }} {{ wg_peer_options }} \
+          interface=wg{{ item.id }} \
+          allowed-address={{ spoke.network }} \
+          endpoint-address={{ lookup('dig', spoke) }} \
+          endpoint-port=518{{ item.id }} \
+          public-key="{{ spoke_pubkey }}" \
+          disabled=yes
+      - /ip route add comment=spoke-{{ item.spoke}} \
+          dst-address={{ spoke.network }} gateway=wg{{ item.id }} \
+          routing-table={{ item.vrf }} vrf-interface={{ item.vrf }}
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "create"
+    - (wg_hub1_backup == inventory_hostname or wg_hub2_backup == inventory_hostname)

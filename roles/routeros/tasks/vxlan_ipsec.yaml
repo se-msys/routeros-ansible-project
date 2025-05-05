@@ -1,0 +1,97 @@
+#
+# RouterOS VXLAN tunnel-builder
+# IPSec tasks
+#
+- name: vxlan_config
+  tags: etree
+  include_vars: vars/routeros_vxlan_etree.yaml
+
+
+# remove ipsec on spoke
+- name: vxlan_spoke_ipsec_remove
+  tags: etree
+  routeros_command:
+    commands:
+      - /ip/ipsec/policy remove [find peer={{ vxlan_hub_a }}]
+      - /ip/ipsec/policy remove [find peer={{ vxlan_hub_b }}]
+      - /ip/ipsec/identity remove [find peer={{ vxlan_hub_a }}} 
+      - /ip/ipsec/identity remove [find peer={{ vxlan_hub_b }}} 
+      - /ip/ipsec/peer remove [find name={{ vxlan_hub_a }}}
+      - /ip/ipsec/peer remove [find name={{ vxlan_hub_b }}}
+  loop: "{{ ros_vxlan_etree }}"
+  when:
+    - item.use_ipsec == True
+    - item.state == "absent"
+    - item.spoke == inventory_hostname
+
+
+# deploy spoke ipsec on hubs
+- name: vxlan_hub_ipsec_remove
+  tags: etree
+  routeros_command:
+    commands:
+      - /ip/ipsec/policy remove [find peer={{ item.spoke }}]
+      - /ip/ipsec/identity remove [find peer={{ item.spoke }}} 
+      - /ip/ipsec/peer remove [find name={{ item.spoke }}}
+  loop: "{{ ros_vxlan_etree }}"
+  when:
+    - item.use_ipsec == True
+    - item.state == "absent"
+    - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
+
+
+
+# remove on spoke
+- name: vxlan_spoke_ipsec_add
+  tags: etree
+  routeros_command:
+    commands:
+      - /ip/ipsec/peer add name={{ vxlan_hub_a }} passive=no exchange-mode=ike2 \
+          local-address={{ lookup('dig', inventory_hostname) }} \
+          address={{ lookup('dig', vxlan_hub_a) }}/32 \
+          profile={{ vxlan_ipsec_profile }}
+      - /ip/ipsec/peer add name={{ vxlan_hub_b }} passive=no exchange-mode=ike2 \
+          local-address={{ lookup('dig', inventory_hostname) }} \
+          address={{ lookup('dig', vxlan_hub_b) }}/32 \
+          profile={{ vxlan_ipsec_profile }}
+      - /ip/ipsec/identity add peer={{ vxlan_hub_a }} \
+           auth-method=pre-shared-key secret="{{ vxlan_ipsec_psk }}"
+      - /ip/ipsec/identity add peer={{ vxlan_hub_b }} \
+            auth-method=pre-shared-key secret="{{ vxlan_ipsec_psk }}"
+      - /ip/ipsec/policy remove [find peer={{ vxlan_hub_a }}]
+      - /ip/ipsec/policy remove [find peer={{ vxlan_hub_b }}]
+      - /ip/ipsec/policy add peer={{ vxlan_hub_a }} protocol=udp \
+          src-address={{ lookup('dig', inventory_hostname) }}/32 \
+          dst-address={{ lookup('dig', vxlan_hub_a) }}/32 \
+          proposal={{ vxlan_ipsec_proposal }} comment="{{ vxlan_hub_a }};{{ item.comment }}"
+      - /ip/ipsec/policy add peer={{ vxlan_hub_b }} protocol=udp \
+          src-address={{ lookup('dig', inventory_hostname) }}/32 \
+          dst-address={{ lookup('dig', vxlan_hub_b) }}/32 \
+          proposal={{ vxlan_ipsec_proposal }} comment="{{ vxlan_hub_b }};{{ item.comment }}"
+  loop: "{{ ros_vxlan_etree }}"
+  when:
+    - item.use_ipsec == True
+    - item.state == "create"
+    - item.spoke == inventory_hostname
+
+
+# deploy spoke ipsec on hubs
+- name: vxlan_hub_ipsec_add
+  tags: etree
+  routeros_command:
+    commands:
+      - /ip/ipsec/peer add name={{ item.spoke }} passive=no exchange-mode=ike2 \
+          local-address={{ lookup('dig', inventory_hostname) }} \
+          address={{ lookup('dig', item.spoke) }}/32 \
+          profile={{ vxlan_ipsec_profile }}
+      - /ip/ipsec/identity add peer={{ item.spoke }} auth-method=pre-shared-key \
+          secret="{{ vxlan_ipsec_psk }}" generate-policy=port-strict policy-template-group=vxlan
+  loop: "{{ ros_vxlan_etree }}"
+  when:
+    - item.use_ipsec == True
+    - item.state == "create"
+    - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
+
+
+
+

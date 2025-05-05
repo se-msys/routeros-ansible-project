@@ -1,16 +1,16 @@
 #
 # RouterOS VXLAN tunnel-builder
-# Tasks that related to spokes
+# Tasks for manage E-tree services
 #
 - name: vxlan_config
-  tags: vxlan
+  tags: etree
   include_vars: vars/routeros_vxlan_etree.yaml
 
 
 
 # remove on spoke
 - name: vxlan_spoke_remove
-  tags: vxlan
+  tags: etree
   routeros_command:
     commands:
       - /interface/bridge/vlan remove [find bridge={{ item.bridge|default('vxbridge') }} vlan-ids={{ item.vni }}]
@@ -26,7 +26,7 @@
 
 # remove spoke on hubs
 - name: vxlan_hub_remove_spoke
-  tags: vxlan
+  tags: etree
   routeros_command:
     commands:
       - /interface/vxlan/vteps remove [find name=vxlan{{ item.vni }} remote-ip={{ lookup('dig', item.spoke) }}]
@@ -36,9 +36,12 @@
     - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
 
 
+
+
+
 # deploy on spoke
 - name: vxlan_spoke_deploy
-  tags: vxlan
+  tags: etree
   routeros_command:
     commands:
       - /interface/bridge add name={{ item.bridge|default('vxbridge') }} {{ vxlan_bridge_options }}
@@ -63,7 +66,7 @@
 
 # deploy spoke on hubs
 - name: vxlan_hub_add_spoke
-  tags: vxlan
+  tags: etree
   routeros_command:
     commands:
       - /interface/vxlan/vteps add interface=vxlan{{ item.vni }} \
@@ -73,6 +76,8 @@
   when:
     - item.state == "create"
     - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
+
+
 
 
 

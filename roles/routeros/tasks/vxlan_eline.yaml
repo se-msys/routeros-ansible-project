@@ -3,14 +3,14 @@
 # Tasks that related to point-to-point services
 #
 - name: vxlan_config
-  tags: vxlan
+  tags: eline
   include_vars: vars/routeros_vxlan_eline.yaml
 
 
 
 # remove on spoke
 - name: vxlan_eline_remove
-  tags: vxlan
+  tags: eline
   routeros_command:
     commands:
       - /interface/bridge/vlan remove [find bridge={{ item.bridge|default('vxbridge') }} vlan-ids={{ item.vni }}]
@@ -27,7 +27,7 @@
 
 # deploy on node A
 - name: vxlan_eline_deploy_a
-  tags: vxlan
+  tags: eline
   routeros_command:
     commands:
       - /interface/bridge add name={{ item.bridge|default('vxbridge') }} {{ vxlan_bridge_options }}
@@ -51,7 +51,7 @@
 
 # deploy on node B
 - name: vxlan_eline_deploy_b
-  tags: vxlan
+  tags: eline
   routeros_command:
     commands:
       - /interface/bridge add name={{ item.bridge|default('vxbridge') }} {{ vxlan_bridge_options }}

@@ -36,5 +36,11 @@ dns_nodes:
 dhcp_nodes:
   - router1
 
+# vxlan manager
+vxlan_options: "mtu=1500 arp=disabled max-fdb-size=128"
+vxlan_vtep_options:
+vxlan_bridge_options: "vlan-filtering=yes arp=disabled protocol=none comment=common-vxlan-bridge"
+vxlan_hub_a: chr1
+vxlan_hub_b: chr2
 
 

@@ -72,3 +72,6 @@
     - item.state == "create"
     - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
 
+
+
+

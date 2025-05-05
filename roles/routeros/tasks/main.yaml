@@ -68,19 +68,26 @@
     - ros_ver.stdout is search("7\..+")
 
 - name: ros_vxlan
-  tags: vxlan
+  tags: 
+    - vxlan
+    - etree
   import_tasks: roles/routeros/tasks/vxlan_etree.yaml
   when:
     - ros_ver.stdout is search("7\..+")
 
-
 - name: ros_vxlan
-  tags: vxlan
+    - vxlan
+    - eline
   import_tasks: roles/routeros/tasks/vxlan_eline.yaml
   when:
     - ros_ver.stdout is search("7\..+")
 
-
+- name: ros_vxlan_ipsec
+    - vxlan
+    - etree
+  import_tasks: roles/routeros/tasks/vxlan_ipsec.yaml
+  when:
+    - ros_ver.stdout is search("7\..+")
 
 
 #
@@ -102,6 +109,63 @@
 - name: ros_misc
   tags: misc
   import_tasks: roles/routeros/tasks/misc.yaml
+
+
+
+
+
+
+# users
+- name: tip_users
+  tags:
+    - template
+    - users
+  routeros_command:
+    commands:
+      - /user add name=nmsuser group=read comment=NmsUser password={{ user_nmsuser_password }}
+      - /user add name=ansible group=full comment=AnsibleUser password={{ user_ansible_password }}
+      - /user add name=backupuser group=read comment=BackupUser password={{ lookup('ansible.builtin.password', '/dev/null', length=32) }}
+      - :delay 2
+      - /user set [find name=nmsuser] disabled=no group=read comment=NmsUser
+      - /user set [find name=ansible] disabled=no group=full comment=AnsibleUser
+      - /user set [find name=backupuser] disabled=no group=read comment=ConfigBackupUser
+      - :delay 2
+      - /tool fetch {{ pubkey_url }}id_rsa_nmsuser2022.pub; :delay 2; /user ssh-keys remove [find user=nmsuser]; /user ssh-keys import user=nmsuser public-key-file=id_rsa_nmsuser2022.pub
+      - /tool fetch {{ pubkey_url }}id_rsa_ansible2022.pub; :delay 2; /user ssh-keys remove [find user=ansible]; /user ssh-keys import user=ansible public-key-file=id_rsa_ansible2022.pub
+      - /tool fetch {{ pubkey_url }}id_rsa_backupuser.pub; :delay 2; /user ssh-keys remove [find user=backupuser]; /user ssh-keys import user=backupuser public-key-file=id_rsa_backupuser.pub
+      - :delay 2
+      - /file remove [find name=id_rsa_nmsuser2022.pub]
+      - /file remove [find name=id_rsa_ansible2022.pub]
+      - /file remove [find name=id_rsa_backupuser.pub]
+      - /console clear-history
+
+
+# users_with_key
+- name: tip_users_with_key
+  tags:
+    - template
+    - users_with_key
+  routeros_command:
+    commands:
+      - /user add name={{ item }} group=full password={{ lookup('ansible.builtin.password', '/dev/null', length=32) }}
+      - :delay 2
+      - /tool fetch {{ pubkey_url }}{{ item }}.pub; :delay 2; /user ssh-keys remove [find user={{ item }}]; /user ssh-keys import user={{ item }} public-key-file={{ item }}.pub
+      - /file remove [find name={{ item }}.pub]
+      - /console clear-history
+  loop: "{{ users_with_key }}"
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

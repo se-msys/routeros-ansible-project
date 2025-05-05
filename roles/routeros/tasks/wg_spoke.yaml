@@ -1,0 +1,57 @@
+#
+# RouterOS WireGuard
+# Spoke tasks
+#
+
+- name: wg_spoke_deploy
+  tags: wireguard
+  routeros_command:
+    commands:
+      - /interface wireguard add name=wg{{ item.id }} {{ wg_tunnel_opts }} \
+          listen-port=518{{ item.id }} \
+          comment="{{ item.comment }}" 
+      - /interface/list add name={{ item.vrf }}
+      - /interface/list/member add list={{ item.vrf }} interface=wg{{ item.id }}
+      - /interface/list/member add list={{ item.vrf }} interface={{ item.spoke_interface }}
+      - /ip/vrf add name={{ item.vrf }} interfaces={{ item.vrf }}
+      - /ip/address add address={{ item.spoke_tunel_address }} interface=wg{{ item.id }}
+      - /ip/address add address={{ item.spoke_network }} interface={{ item.spoke_interface }}
+      - /ip/route add dst-address=0.0.0.0/0 gateway=wg{{ item.id }} routing-table={{ item.vrf }} vrf-interface={{ item.vrf }}
+      - /interface/wireguard/peers add interface=wg{{ item.id }} \
+          endpoint-address={{ wg_hub1_loopback }} \
+          endpoint-port=518{{ item.id }} \
+          allowed-address={{ wg_hub1_network }} \
+          public-key="{{ item.hub_pubkey }}" \
+          responder=yes
+      - /interface/wireguard/peers add interface=wg{{ item.id }} \
+          endpoint-address={{ wg_hub2_loopback }} \
+          endpoint-port=518{{ item.id }} \
+          allowed-address={{ wg_hub2_network }} \
+          public-key="{{ item.hub_pubkey }}" \
+          responder=yes
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "create"
+    - item.spoke == inventory_hostname
+
+
+
+- name: wg_spoke_remove
+  tags: wireguard
+  routeros_command:
+    commands:
+      - /interface/wireguard/peers remove [find interface=wg{{ item.id }}
+      - /ip/address remove [find interface=wg{{ item.id }}
+      - /ip/address remove [find interface={{ item.spoke_interface }}]
+      - /ip/route remove [find routing-table={{ item.vrf }}]
+      - /interface/list/member remove [find list={{ item.vrf }}]
+      - /interface/list remove [find name={{ item.vrf }}]
+      - /interface wireguard remove |find name=wg{{ item.id }}]
+      - /ip/vrf remove [find name={{ item.vrf }}]
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "absent"
+    - item.spoke == inventory_hostname
+
+
+

@@ -3,20 +3,21 @@
 # Hub bridge services
 # 
 
+
 ros_vxlan_hub:
-  - vni: 101
-    bridge_vlan: 101
-    comment: "CCTV"
-    state: create
+   - vni: 101
+     bridge_vlan: 101
+     comment: "CCTV"
+     state: create
 
-  - vni: 102
-    bridge_vlan: 102
-    comment: "Guest WiFi"
-    state: create
+#   - vni: 102
+#     bridge_vlan: 102
+#     comment: "Guest WiFi"
+#     state: create
 
-  - vni: 103
-    bridge_vlan: 103
-    comment: "Remote Access"
-    state: create
+#   - vni: 103
+#     bridge_vlan: 103
+#     comment: "Remote Access"
+#     state: create
 
 

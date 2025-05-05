@@ -4,25 +4,26 @@
 # 
 
 ros_vxlan_etree:
-  - vni: 101
-    bridge_vlan: 101
-    spoke: chr8
-    spoke_interface: ether7
-    comment: "CCTV"
-    state: create
+   - vni: 101
+     bridge_vlan: 101
+     spoke: chr8
+     spoke_interface: ether7
+     comment: "CCTV"
+     state: create
+     use_ipsec: true
 
-  - vni: 102
-    bridge_vlan: 102
-    spoke: chr8
-    spoke_interface: ether7
-    comment: "Guest WiFi"
-    state: create
+#   - vni: 102
+#     bridge_vlan: 102
+#     spoke: chr8
+#     spoke_interface: ether7
+#     comment: "Guest WiFi"
+#     state: create
 
-  - vni: 103
-    bridge_vlan: 103
-    spoke: chr8
-    spoke_interface: ether7
-    comment: "Remote Access"
-    state: create
+#   - vni: 103
+#     bridge_vlan: 103
+#     spoke: chr8
+#     spoke_interface: ether7
+#     comment: "Remote Access"
+#     state: create
 
 
