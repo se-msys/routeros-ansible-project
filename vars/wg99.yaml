@@ -1,0 +1,15 @@
+# wg99 service definition
+
+# general settings
+wg_hub_loopback: 172.30.255.1
+wg_hub_network: 198.51.100.0/24
+wg_hub_primary: chr1
+wg_hub_backup: chr2
+wg_hub_group: site1
+wg_id: 99
+wg_hub_pubkey: "4lq0gSjLyi5eveI8BXQKpHqsPADSDI4iYGKqXwduZAc="
+wg_hub_vrf: VRF99
+
+# spoke settings
+comment: "example service 99"
+spoke_vrf: VRF99

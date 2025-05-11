@@ -1,43 +1,125 @@
 #
 # RouterOS WireGuard
-# Hub tasks
+# Inventory based tunnel manager
+# *** under development ***
 #
+- name: wg_config_import
+  tags: wireguard
+  include_vars: vars/wireguard.yaml
 
+
+
+# remove from hubs
+- name: wg_remove_hub
+  tags: wireguard
+  routeros_command:
+    commands:
+      - /interface/wireguard/peers remove [find interface=wg{{ item.id }} endpoint-address={{ lookup('dig', item.spoke) }}]
+      - /ip/route remove [find dst-address={{ item.spoke_interface_address|ansible.utils.ipv4('network/prefix') }}]
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "absent"
+    - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
+
+
+
+
+# extract spoke_pubkey
+- name: transform
+  tags: wireguard
+  set_fact:
+    spoke_pubkey: "{{ spoke_pubkey_raw.results[0].stdout[0] }}"
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "create"
+    - item.spoke == inventory_hostname
+    - spoke_pubkey_raw.results[0].stdout is defined
+
+- name: DEBUG
+  tags: xxxx
+  debug:
+    var: hostvars['chr8'].spoke_pubkey
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "create"
+
+- name: Create a simple text file
+  tags: xxxx
+  copy:
+    dest: "/tmp/spoke_pubkey.tmp"
+    content: "{{ spoke_pubkey }}"
+  when:
+    - spoke_pubkey is defined
+
+
+
+
+# add peer to primary hub
 - name: wg_deploy_hub_primary
   tags: wireguard
   routeros_command:
     commands:
-      - /interface/wireguard/peers add name=spoke-{{ item.spoke }} {{ wg_peer_options }} \
+      - /interface/wireguard/peers add name=spoke-{{ item.spoke }} {{ wg_peer_opts }} \
           interface=wg{{ item.id }} \
-          allowed-address={{ spoke.network }} \
-          endpoint-address={{ lookup('dig', spoke) }} \
+          allowed-address={{ item.spoke_interface_address|ansible.utils.ipv4('network/prefix') }} \
+          endpoint-address={{ lookup('dig', item.spoke) }} \
           endpoint-port=518{{ item.id }} \
-          public-key="{{ spoke_pubkey }}" \
+          public-key="{{ hostvars['chr8']['spoke_pubkey'] }}" \
           disabled=no
-      - /ip route add comment=spoke-{{ item.spoke}} \
-          dst-address={{ spoke.network }} gateway=wg{{ item.id }} \
-          routing-table={{ item.vrf }} vrf-interface={{ item.vrf }}
   loop: "{{ wg_instances }}"
   when:
     - item.state == "create"
-    - (wg_hub1_primary == inventory_hostname or wg_hub2_primary == inventory_hostname)
+    - item.hub_primary == inventory_hostname
 
 
+# add peer to backup hub
 - name: wg_deploy_hub_backup
   tags: wireguard
   routeros_command:
     commands:
-      - /interface/wireguard/peers add name=spoke-{{ item.spoke }} {{ wg_peer_options }} \
+      - /interface/wireguard/peers add name=spoke-{{ item.spoke }} {{ wg_peer_opts }} \
           interface=wg{{ item.id }} \
-          allowed-address={{ spoke.network }} \
-          endpoint-address={{ lookup('dig', spoke) }} \
+          allowed-address={{ item.spoke_interface_address|ansible.utils.ipv4('network/prefix') }} \
+          endpoint-address={{ lookup('dig', item.spoke) }} \
           endpoint-port=518{{ item.id }} \
-          public-key="{{ spoke_pubkey }}" \
+          public-key="{{ hostvars['chr8']['spoke_pubkey'] }}" \
           disabled=yes
-      - /ip route add comment=spoke-{{ item.spoke}} \
-          dst-address={{ spoke.network }} gateway=wg{{ item.id }} \
-          routing-table={{ item.vrf }} vrf-interface={{ item.vrf }}
   loop: "{{ wg_instances }}"
   when:
     - item.state == "create"
-    - (wg_hub1_backup == inventory_hostname or wg_hub2_backup == inventory_hostname)
+    - item.hub_backup == inventory_hostname
+
+
+
+
+# add route to tunnel
+- name: wg_deploy_hub_route
+  tags: wireguard
+  routeros_command:
+    commands:
+      - /ip route remove [find dst-address={{ item.spoke_interface_address|ansible.utils.ipv4('network/prefix') }}]
+      - /ip route add comment=wg{{ item.id }}-spoke-{{ item.spoke }} \
+          dst-address={{ item.spoke_interface_address|ansible.utils.ipv4('network') }} \
+          gateway=wg{{ item.id }}
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "create"
+    - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
+
+
+# add route to specific vrf
+- name: wg_deploy_hub_route_vrf
+  tags: wireguard
+  routeros_command:
+    commands:
+      - /ip route remove [find dst-address={{ item.spoke_interface_address|ansible.utils.ipv4('network/prefix') }}]
+      - /ip route add comment=wg{{ item.id }}-spoke-{{ item.spoke }} \
+          dst-address={{ item.spoke_interface_address|ansible.utils.ipv4('network') }} \
+          gateway=wg{{ item.id }} routing-table={{ item.hub_vrf }} vrf-interface={{ item.hub_vrf }}
+  loop: "{{ wg_instances }}"
+  when:
+    - item.state == "create"
+    - (item.hub_primary == inventory_hostname or item.hub_backup == inventory_hostname)
+    - item.hub_vrf is defined
+
+

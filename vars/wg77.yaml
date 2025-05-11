@@ -1,0 +1,15 @@
+# wg88 service definition
+
+# general settings
+wg_hub_loopback: 172.30.255.1
+wg_hub_network: 198.18.0.1/24
+wg_hub_primary: chr1
+wg_hub_backup: chr2
+wg_hub_group: site1
+wg_id: 88
+wg_hub_pubkey: ""
+wg_hub_vrf: VRF77
+
+# spoke settings
+comment: "example service 77"
+
