@@ -12,6 +12,7 @@ This is a set of tasks and data strucutres to manage a large set of Layer 2 or L
   - Manage directly routed networks/subnets via OSPF or BGP
   - General and common settings
   - RouterOS 6 and 7 compability (VXLAN only supported in 7.x)
+  - WireGuard Hub(s) to Spoke scenarios
 
 
 ### Future plans ###
@@ -127,42 +128,26 @@ VXLAN requires both parties to have a VTEP relation to work. For that reason, by
 
 #### WireGuard ####
 
+To be documented
 
-  - spoke: skapa vrf
-  - spoke: skapa wg-interface, spara undan pubkey
-  - spoke: skapa peers med endpoints och allowed-addresses
-  - spoke: skapa bgp-instans
-  - hubs: skapa spoke med endpoint och allowed-addresses
+See `roles/routeros/tasks/wg_push.yaml` and `vars/wg99.yaml` for example use
 
+Can be setup in a high-avability fashion with the help of VXLAN and VRRP
 
 
-## Spoke setup
-/interface list
-add name=VRF30 
-
-/ip vrf
-add interfaces=vrf30 interfaces=VRF30
-
-/interface wireguard
-add listen-port=13030 mtu=1400 name=wg30
-
-/interface list member
-add list=VRF30 interface=wg30
-add list=VRF30 interface=ether7
-
-/ip address
-add address=SPOKE-TUNNEL-IP/32 interface=wg30
-
-/interface wireguard peers
-add allowed-address=HUB-TUNNEL-IP1/32,HUB-NETWORK1 client-address=SPOKE-TUNNEL-IP/32 endpoint-address=HUB-IP1 endpoint-port=13030 interface=wg30 name=wg30-hub1 public-key=""
-
-add allowed-address=HUB-TUNNEL-IP2/32,HUB-NETWORK2 client-address=SPOKE-TUNNEL-IP/32 endpoint-address=HUB-IP2 endpoint-port=13030 interface=wg30 name=wg30-hub2 public-key=""
-
-/routing bgp connection
-add address-families=ip as=65000 connect=yes disabled=no listen=no local.address=SPOKE-TUNNEL-IP .role=ibgp name=wg30-hub1 nexthop-choice=force-self output.redistribute=connected remote.address=HUB-TUNNEL-IP1 .as=65000 routing-table=VRF30 vrf=VRF30
-
-add address-families=ip as=65000 connect=yes disabled=no listen=no local.address=SPOKE-TUNNEL-IP .role=ibgp name=wg30-hub2 nexthop-choice=force-self output.redistribute=connected remote.address=HUB-TUNNEL-IP2 .as=65000 routing-table=VRF30 vrf=VRF30
-
-
+    /interface vxlan
+    add name=vxlan10 vni=10 mtu=1500 max-fdb-size=16
+    
+    /interface vxlan vteps
+    add interface=vxlan10 remote-ip=172.30.7.2 comment="other-hub"
+    
+    /interface vrrp
+    add interface=vxlan10 name=vxlan10-vrrp \
+      on-backup="/interface/wireguard disable [find]" on-master="/interface/wireguard enable [find]"
+    
+    /ip address
+    add address=172.30.255.2/29 interface=vxlan10 
+    add address=172.30.255.1/32 interface=vxlan10-vrrp 
+    
 
 
