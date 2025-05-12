@@ -34,8 +34,8 @@
 - name: wg_spoke_remove_vrf
   routeros_command:
     commands:
-      - /interface/list/member remove [find list=g_{{ spoke_vrf }}]
-      - /interface/list remove [find name=g_{{ spoke_vrf }}]
+      - /interface/list/member remove [find list=vrf_{{ spoke_vrf }}]
+      - /interface/list remove [find name=vrf_{{ spoke_vrf }}]
       - /ip/vrf remove [find name={{ spoke_vrf }}]
   when:
     - state == "absent"
@@ -53,7 +53,6 @@
       - /interface wireguard add name=wg{{ wg_id }} {{ wg_tunnel_opts }} \
           listen-port=518{{ wg_id }} \
           comment="{{ comment }}"
-      ##- /ip/address add address={{ spoke_tun_addr }} interface=wg{{ wg_id }}
       - /ip/address add address={{ spoke_intf_addr }} interface={{ spoke_intf }}
       - /interface/wireguard/peers add interface=wg{{ wg_id }} {{ wg_peer_opts }} \
           name=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
@@ -73,10 +72,10 @@
 - name: wg_spoke_vrf
   routeros_command:
     commands:
-      - /interface/list add name=g_{{ spoke_vrf }}
-      - /interface/list/member add list=g_{{ spoke_vrf }} interface=wg{{ wg_id }}
-      - /interface/list/member add list=g_{{ spoke_vrf }} interface={{ spoke_intf }}
-      - /ip/vrf add name={{ spoke_vrf }} interfaces=g_{{ spoke_vrf }}
+      - /interface/list add name=vrf_{{ spoke_vrf }}
+      - /interface/list/member add list=vrf_{{ spoke_vrf }} interface=wg{{ wg_id }}
+      - /interface/list/member add list=vrf_{{ spoke_vrf }} interface={{ spoke_intf }}
+      - /ip/vrf add name={{ spoke_vrf }} interfaces=vrf_{{ spoke_vrf }}
       - /ip/route remove [find where static gateway~"wg{{ wg_id }}.*"]
       - /ip/route add comment=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
           dst-address=0.0.0.0/0 gateway=wg{{ wg_id }} \
