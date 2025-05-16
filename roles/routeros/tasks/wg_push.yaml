@@ -78,7 +78,7 @@
       - /ip/vrf add name={{ spoke_vrf }} interfaces=vrf_{{ spoke_vrf }}
       - /ip/route remove [find where static gateway~"wg{{ wg_id }}.*"]
       - /ip/route add comment=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
-          dst-address=0.0.0.0/0 gateway=wg{{ wg_id }} \
+          dst-address={{ wg_hub_network }} gateway=wg{{ wg_id }} \
           routing-table={{ spoke_vrf }} vrf-interface={{ spoke_vrf }}
   when:
     - state == "create"
