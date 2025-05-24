@@ -5,15 +5,9 @@ This is a set of tasks and data strucutres to manage a large set of Layer 2 or L
 
 ### Current focus ###
 
-  - Orchestrate a large set of L2 tunnels, bridges and VRFs, thus creating virtual services across a network.
-  - Orchestrate a large set of L3 tunnels, bridges and VRFs, thus creating virtual services across a network.
-  - Manage VLAN interfaces
-  - Manage directly routed networks/subnets
-  - Manage directly routed networks/subnets via OSPF or BGP
-  - General and common settings
-  - RouterOS 6 and 7 compability (VXLAN only supported in 7.x)
-  - WireGuard Hub(s) to Spoke scenarios
-
+  - L3VPN with WireGuard Hub(s) to Spoke scenarios
+  - L2VPN with VXLAN with E-tree and E-line scenarios - with additional IPsec
+  - L3VPN with EoIP - with our without dynamic routing
 
 ### Future plans ###
 
@@ -21,15 +15,10 @@ This is a set of tasks and data strucutres to manage a large set of Layer 2 or L
   - Switching, VLANs and Bridges
   - Additional Tunnel settings
 
-
-### Types ###
+#### EoIP with inventory ####
 
   - **eoip** - Plain EoIP tunnel
   - **eoip_ab** - Active/Backup setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
-  - **vxlan** - Enables Layer 2 Hub to Spoke or Spoke-to-Spoke L2VPN with over IP-transport
-
-
-#### EoIP ####
 
 EoIP (Ethernet-over-IP) is a Mikrotik RouterOS properatary GRE-variant to transport Ethernet-frames over IP-transport. It has ability for handling fragmentation and other stuff.
 
@@ -38,7 +27,7 @@ EoIP (Ethernet-over-IP) is a Mikrotik RouterOS properatary GRE-variant to transp
   - **l3t** - Simple Layer 3 tunnel
 
 
-#### EoIP Tunnel options ####
+#### EoIP inventory options ####
 
 Tunnels are defined in `vars/routeros_tunnel.yaml`
 
@@ -83,13 +72,13 @@ Mikrotik EoIP tunnels uses a 16-bit (1-65,535) Tunnel ID. Because of this you wi
 ### VXLAN ###
 
   - **bridge** - Meshed bridge service at hub nodes (A and B)
-  - **etree** - Hub-Spoke E-Tree like L2 service
-  - **eline** - Spoke-Spoke E-Line like L2 service
+  - **etree** - Hubs-Spoke E-Tree like L2VPN service
+  - **eline** - Spoke-Spoke E-Line like L2VPN service
 
 
 #### VXLAN Tunnel options ####
 
-See examples under `vars/`
+See examples under `vars/routeros_vxlan_*.yaml`
 
     vni                              VXLAN Virtual Network Identifier number (1-16777216)
     bridge                           Bridge name (default: "vxbridge"). This allows for multiple "bridge domains".
