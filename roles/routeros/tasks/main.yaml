@@ -16,18 +16,10 @@
   register: ros_arch
 
 
-- name: ros_upgrade
-  tags: upgrade
-  import_tasks: roles/routeros/tasks/upgrade.yaml
-  when:
-    - ros_ver.stdout is search("6\..+")
 
-- name: ros_upgrade7
-  tags: upgrade
-  import_tasks: roles/routeros/tasks/upgrade7.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
-
+#
+# EoIP
+#
 - name: ros_eoip
   tags: eoip
   import_tasks: roles/routeros/tasks/eoip.yaml
@@ -36,29 +28,9 @@
   tags: eoip
   import_tasks: roles/routeros/tasks/eoip_ab.yaml
 
-- name: ros_vpls
-  tags: vpls
-  import_tasks: roles/routeros/tasks/vpls.yaml
-  when:
-    - ros_ver.stdout is search("6\..+")
-
-- name: ros_vpls7
-  tags: vpls
-  import_tasks: roles/routeros/tasks/vpls7.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
-
-- name: ros_subnet
-  tags: subnet
-  import_tasks: roles/routeros/tasks/subnet.yaml
-  when:
-    - ros_ver.stdout is search("6\..+")
-
-- name: ros_subnet7
-  tags: subnet
-  import_tasks: roles/routeros/tasks/subnet7.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
+- name: ros_push
+  tags: eopush
+  import_tasks: roles/routeros/tasks/eoip_push.yaml
 
 
 #
@@ -137,8 +109,6 @@
 
 
 
-
-
 # users
 - name: tip_users
   tags:
@@ -154,12 +124,12 @@
       - /user set [find name=ansible] disabled=no group=full comment=AnsibleUser
       - /user set [find name=backupuser] disabled=no group=read comment=ConfigBackupUser
       - :delay 2
-      - /tool fetch {{ pubkey_url }}id_rsa_nmsuser2022.pub; :delay 2; /user ssh-keys remove [find user=nmsuser]; /user ssh-keys import user=nmsuser public-key-file=id_rsa_nmsuser2022.pub
-      - /tool fetch {{ pubkey_url }}id_rsa_ansible2022.pub; :delay 2; /user ssh-keys remove [find user=ansible]; /user ssh-keys import user=ansible public-key-file=id_rsa_ansible2022.pub
+      - /tool fetch {{ pubkey_url }}id_rsa_nmsuser.pub; :delay 2; /user ssh-keys remove [find user=nmsuser]; /user ssh-keys import user=nmsuser public-key-file=id_rsa_nmsuser.pub
+      - /tool fetch {{ pubkey_url }}id_rsa_ansible.pub; :delay 2; /user ssh-keys remove [find user=ansible]; /user ssh-keys import user=ansible public-key-file=id_rsa_ansible.pub
       - /tool fetch {{ pubkey_url }}id_rsa_backupuser.pub; :delay 2; /user ssh-keys remove [find user=backupuser]; /user ssh-keys import user=backupuser public-key-file=id_rsa_backupuser.pub
       - :delay 2
-      - /file remove [find name=id_rsa_nmsuser2022.pub]
-      - /file remove [find name=id_rsa_ansible2022.pub]
+      - /file remove [find name=id_rsa_nmsuser.pub]
+      - /file remove [find name=id_rsa_ansible.pub]
       - /file remove [find name=id_rsa_backupuser.pub]
       - /console clear-history
 

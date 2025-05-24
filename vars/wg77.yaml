@@ -2,6 +2,7 @@
 
 # general settings
 wg_hub_loopback: 172.30.255.1
+wg_hub_linknet: 172.30.254.0/24
 wg_hub_network: 198.18.0.0/24
 wg_hub_primary: chr1
 wg_hub_backup: chr2

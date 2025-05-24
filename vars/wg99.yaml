@@ -1,15 +1,25 @@
 # wg99 service definition
 
-# general settings
+# general
+wg_id: 99
 wg_hub_loopback: 172.30.255.1
-wg_hub_network: 198.51.100.0/24
+wg_hub_networks: 10.99.0.1/32,172.30.254.0/24,198.51.100.0/24
+wg_hub_routes:
+  - 172.30.254.0/24
+  - 198.51.100.0/24
+  - 198.51.101.0/24 
+  - 198.51.102.0/24
 wg_hub_primary: chr1
 wg_hub_backup: chr2
 wg_hub_group: site1
-wg_id: 99
 wg_hub_pubkey: "4lq0gSjLyi5eveI8BXQKpHqsPADSDI4iYGKqXwduZAc="
 wg_hub_vrf: VRF99
+
+# active mode
+wg_tun_active: true
+wg_tun_cidr: 24
 
 # spoke settings
 comment: "example service 99"
 spoke_vrf: VRF99
+

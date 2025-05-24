@@ -1,0 +1,101 @@
+#
+# EoIP L3VPN Push-based tunnels
+#
+# Example run:
+# > ansible-playbook playbook.yaml -t eopush -l hub1,hub2,spoke1 -e @vars/eoip55.yaml \
+#   -e "tid=123 spoke=spoke1 spoke_intf=ether7 hub_tun_addr=192.168.99.1/24 state=create"
+#
+
+
+# remove from spoke
+- name: eoip_remove_spoke
+  routeros_command:
+    commands:
+      - /interface/bridge/port remove [find interface={{ spoke_intf }}]
+      - /interface/bridge/port remove [find interface=eoip-{{ service_id }}-{{ tid }}]
+      - /interface/eoip remove [find name=eoip-{{ service_id }}-{{ tid }}]
+      - /interface/bridge remove [find name=br-{{ service_id }}]
+  when:
+    - state == "absent"
+    - spoke == inventory_hostname
+
+# remove from hubs
+- name: eoip_remove_hub
+  routeros_command:
+    commands:
+      - /ip/address remove [find interface=eoip-{{ service_id }}-{{ tid }}]
+      - /interface/list/member remove [find interface=eoip-{{ service_id }}-{{ tid }}]
+      - /interface/eoip remove [find name=eoip-{{ service_id }}-{{ tid }}]
+  when:
+    - state == "absent"
+    - (hub_primary == inventory_hostname or hub_backup == inventory_hostname)
+
+
+
+
+
+# deploy on spoke
+- name: eoip_deploy_spoke
+  routeros_command:
+    commands:
+      - /interface/bridge add name=br-{{ service_id }} arp=disabled protocol=none \
+          comment="{{ service_id }};{{ tid }};{{ comment }}"
+      - /interface/eoip add name=eoip-{{ service_id }}-{{ tid }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] \
+          local-address={{ lookup('dig', spoke) }} {{ eoip_options }} \
+          remote-address={{ hub_loopback }} \
+          tunnel-id={{ service_id }}{{ tid }} \
+          arp=disabled disabled=no \
+          comment="{{ service_id }};{{ tid }};{{ comment }}"
+      - /interface/bridge/port add bridge=br-{{ service_id }} interface=eoip-{{ service_id }}-{{ tid }}
+      - /interface/bridge/port add bridge=br-{{ service_id }} interface={{ spoke_intf }} edge=yes
+  when:
+    - state == "create"
+    - spoke == inventory_hostname
+
+
+
+# deploy on hubs
+- name: eoip_deploy_hub
+  routeros_command:
+    commands:
+      - /interface/eoip add name=eoip-{{ service_id }}-{{ tid }} remote-address=0.0.0.0 tunnel-id=0
+      - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] \
+          local-address={{ hub_loopback }} {{ eoip_options }} \
+          remote-address={{ lookup('dig', spoke) }} \
+          tunnel-id={{ service_id }}{{ tid }} \
+          arp=enabled disabled=yes \
+          comment="{{ service_id }};{{ tid }};{{ comment }}"
+      - /interface/list/member add list=vrf_{{ hub_vrf }} interface=eoip-{{ service_id }}-{{ tid }}
+      - /ip/address add address={{ hub_tun_addr }} \
+          interface=eoip-{{ service_id }}-{{ tid }} \
+          comment="{{ service_id }};{{ tid }};{{ comment }}"
+  when:
+    - state == "create"
+    - (hub_primary == inventory_hostname or hub_backup == inventory_hostname)
+
+
+
+# enable tunnel on primary hub
+- name: eoip_hub_primary_set
+  tags: eoip
+  routeros_command:
+    commands:
+      - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] disabled=no
+  when:
+    - state == "create"
+    - hub_primary == inventory_hostname
+
+
+# disable tunnel on backup hub
+- name: eoip_hub_backup_set
+  tags: eoip
+  routeros_command:
+    commands:
+      - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] disabled=yes
+  when:
+    - state == "create"
+    - hub_backup == inventory_hostname
+
+
+

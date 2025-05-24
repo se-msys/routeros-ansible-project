@@ -34,11 +34,11 @@ The signaling works over a routed VXLAN interface in this example, but a regular
 ### Hubs setup (on each hub, per spoke) ###
 
     /interface wireguard peers
-    add name=wg99spoke-XXXX allowed-address=SPOKE-NETWORK/24 \
+    add name=wg99spoke-XXXX allowed-address=10.0.0.42/32,SPOKE-NETWORK/24 \
       endpoint-address=SPOKE-ENDPOINT endpoint-port=51899 interface=wg99 name=wg99-SPOKE public-key=XXXXXXXX
     
     /ip route
-    add comment=wg99-spoke-XXXX dst-address=SPOKE-NETWORK/24 gateway=wg99
+    add comment=wg99-spoke-XXXX dst-address=SPOKE-NETWORK/24 gateway=10.0.0.42 check-gateway=ping
 
 
 
@@ -48,13 +48,13 @@ The signaling works over a routed VXLAN interface in this example, but a regular
     add listen-port=51899 mtu=1500 name=wg99 comment="example service 99"
     
     /interface wireguard peers
-    add allowed-address=198.51.100.64/28 \
+    add allowed-address==10.0.0.1/32,198.51.100.0/24 \
       endpoint-address=172.30.255.1 endpoint-port=51899 interface=wg99 name=wg99-hub public-key=XXXXXXXXXX
     
     /ip address
     add address=10.0.0.42/24 interface=wg99
     
     /ip route
-    add dst-address=198.51.100.64/28 gateway=wg99
+    add dst-address=198.51.100.0/24 gateway=wg99
 
 

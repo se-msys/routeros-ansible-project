@@ -126,7 +126,7 @@ It is however fully possible to setup IPsec encryption between nodes as with all
 VXLAN requires both parties to have a VTEP relation to work. For that reason, by design, Spokes in a E-tree setup will not be able to communicate, hence the E-tree name.
 
 
-#### WireGuard ####
+#### WireGuard tunnels ####
 
 To be documented
 
@@ -149,5 +149,16 @@ Can be setup in a high-avability fashion with the help of VXLAN and VRRP
     add address=172.30.255.2/29 interface=vxlan10 
     add address=172.30.255.1/32 interface=vxlan10-vrrp 
     
+
+
+#### EoIP tunnels ####
+
+To be documented
+
+See `roles/routeros/tasks/eoip_push.yaml` and `vars/eoip55.yaml` for example use
+
+
+
+
 
 

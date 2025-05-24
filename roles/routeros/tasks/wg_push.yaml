@@ -4,7 +4,7 @@
 #
 # Example run:
 # > ansible-playbook playbook.yaml -t wgpush -l hub1,hub2,spoke1 -e @vars/wg42.yaml \
-#   -e "spoke=spoke1 spoke_tun_addr=10.99.0.42/24 spoke_intf=ether7 spoke_intf_addr=192.168.99.1/24 state=create"
+#   -e "spoke=spoke1 spoke_intf=ether7 spoke_intf_addr=192.168.99.1/24 state=create"
 #
 
 # remove from hubs
@@ -42,6 +42,16 @@
     - spoke == inventory_hostname
     - spoke_vrf is defined
 
+# remove interface list
+- name: wg_spoke_remove_intf_list
+  routeros_command:
+    commands:
+      - /interface/list/member remove [find list={{ spoke_intf_list }} interface={{ spoke_intf }}]
+  when:
+    - state == "absent"
+    - spoke == inventory_hostname
+    - spoke_intf_list is defined
+
 
 
 #
@@ -50,19 +60,16 @@
 - name: wg_spoke_deploy
   routeros_command:
     commands:
+      - /ip/route remove [find where static gateway~"wg{{ wg_id }}.*"]
       - /interface wireguard add name=wg{{ wg_id }} {{ wg_tunnel_opts }} \
-          listen-port=518{{ wg_id }} \
-          comment="{{ comment }}"
+          listen-port=518{{ wg_id }} comment="{{ comment }}"
       - /ip/address add address={{ spoke_intf_addr }} interface={{ spoke_intf }}
       - /interface/wireguard/peers add interface=wg{{ wg_id }} {{ wg_peer_opts }} \
           name=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
           endpoint-address={{ wg_hub_loopback }} \
           endpoint-port=518{{ wg_id }} \
-          allowed-address={{ wg_hub_network }} \
+          allowed-address={{ wg_hub_networks }} \
           public-key="{{ wg_hub_pubkey }}"
-      - /ip/route remove [find where static gateway~"wg{{ wg_id }}.*"]
-      - /ip/route add comment=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
-          dst-address={{ wg_hub_network }} gateway=wg{{ wg_id }}
   when:
     - state == "create"
     - spoke == inventory_hostname
@@ -76,17 +83,49 @@
       - /interface/list/member add list=vrf_{{ spoke_vrf }} interface=wg{{ wg_id }}
       - /interface/list/member add list=vrf_{{ spoke_vrf }} interface={{ spoke_intf }}
       - /ip/vrf add name={{ spoke_vrf }} interfaces=vrf_{{ spoke_vrf }}
-      - /ip/route remove [find where static gateway~"wg{{ wg_id }}.*"]
-      - /ip/route add comment=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
-          dst-address={{ wg_hub_network }} gateway=wg{{ wg_id }} \
-          routing-table={{ spoke_vrf }} vrf-interface={{ spoke_vrf }}
   when:
     - state == "create"
     - spoke == inventory_hostname
     - spoke_vrf is defined
 
 
-# get public-key from tunnel
+# create routes 
+- name: wg_spoke_routes_add
+  routeros_command:
+    commands:
+      - /ip/route add dst-address={{ item }} gateway=wg{{ wg_id }} comment=wg{{ wg_id }}-hub-{{ wg_hub_group }} 
+  when:
+    - state == "create"
+    - spoke == inventory_hostname
+    - spoke_vrf is not defined
+  loop: "{{ wg_hub_routes }}"
+
+
+# create routes in vrf
+- name: wg_spoke_routes_add_vrf
+  routeros_command:
+    commands:
+      - /ip/route add dst-address={{ item }} gateway=wg{{ wg_id }} comment=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
+          routing-table={{ spoke_vrf }} vrf-interface={{ spoke_vrf }}
+  when:
+    - state == "create"
+    - spoke == inventory_hostname
+    - spoke_vrf is defined
+  loop: "{{ wg_hub_routes }}"
+
+
+# add spoke interface to list
+- name: wg_spoke_intf_list
+  routeros_command:
+    commands:
+      - /interface/list/member add list={{ spoke_intf_list }} interface={{ spoke_intf }}
+  when:
+    - state == "create"
+    - spoke == inventory_hostname
+    - spoke_intf_list is defined
+
+
+# get public-key from spoke tunnel
 - name: wg_spoke_get_pubkey
   routeros_command:
     commands:
@@ -112,8 +151,7 @@
           allowed-address={{ spoke_intf_addr|ansible.utils.ipv4('network/prefix') }} \
           endpoint-address={{ lookup('dig', spoke) }} \
           endpoint-port=518{{ wg_id }} \
-          public-key="{{ hostvars[spoke].spoke_pubkey_raw.stdout[0] }}" \
-          responder=yes
+          public-key="{{ hostvars[spoke].spoke_pubkey_raw.stdout[0] }}"
   when:
     - state == "create"
     - wg_hub_primary == inventory_hostname
@@ -128,8 +166,7 @@
           allowed-address={{ spoke_intf_addr|ansible.utils.ipv4('network/prefix') }} \
           endpoint-address={{ lookup('dig', spoke) }} \
           endpoint-port=518{{ wg_id }} \
-          public-key="{{ hostvars[spoke].spoke_pubkey_raw.stdout[0] }}" \
-          responder=yes
+          public-key="{{ hostvars[spoke].spoke_pubkey_raw.stdout[0] }}"
   when:
     - state == "create"
     - wg_hub_backup == inventory_hostname
@@ -162,5 +199,31 @@
     - wg_hub_vrf is defined
 
 
+
+
+#
+# Active tunnel
+#
+- name: wg_spoke_active_tunnel
+  routeros_command:
+    commands:
+      - /ip/address add address={{ spoke_tun_addr }}/{{ wg_tun_cidr }} interface=wg{{ wg_id }}
+  when:
+    - state == "create"
+    - spoke == inventory_hostname
+    - wg_tun_active == true
+
+
+- name: wg_hub_active_tunnel
+  routeros_command:
+    commands:
+      - /interface/wireguard/peers set [find name=wg{{ wg_id }}-spoke-{{ spoke }}] \
+          allowed-address={{ spoke_tun_addr }},{{ spoke_intf_addr|ansible.utils.ipv4('network/prefix') }}
+      - /ip/route set [find dst-address={{ spoke_intf_addr|ansible.utils.ipv4('network/prefix') }}] \
+          gateway={{ spoke_tun_addr }} check-gateway=ping
+  when:
+    - state == "create"
+    - (wg_hub_primary == inventory_hostname or wg_hub_backup == inventory_hostname)
+    - wg_tun_active == true
 
 
