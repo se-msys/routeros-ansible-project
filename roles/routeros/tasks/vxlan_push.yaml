@@ -1,0 +1,95 @@
+#
+# VXLAN L2VPN Push-based tunnels
+#
+# Example usage:
+# > ansible-playbook playbook.yaml -t vxpush -l hub1,hub2,spoke1 -e @vars/vxlan.yaml \
+#   -e "spoke=spoke1 spoke_if=ether7 vni=123 state=create"
+#
+
+
+# remove on spoke
+- name: vxlan_spoke_remove
+  routeros_command:
+    commands:
+      - /interface/bridge/vlan remove [find bridge={{ vxlan_bridge }} vlan-ids={{ bridge_vlan|default(vni) }}]
+      - /interface/bridge/port remove [find bridge={{ vxlan_bridge }} interface=vxlan{{ vni }}]
+      - /interface/bridge/port remove [find bridge={{ vxlan_bridge }} pvid={{ bridge_vlan|default(vni) }}]
+      - /interface/vxlan/vteps remove [find name=vxlan{{ vni }}]
+      - /interface/vxlan remove [find name=vxlan{{ vni }}]
+  when:
+    - state == "absent"
+    - spoke == inventory_hostname
+
+
+# remove spoke on hubs
+- name: vxlan_hub_remove_spoke
+  routeros_command:
+    commands:
+      - /interface/vxlan/vteps remove [find name=vxlan{{ vni }} remote-ip={{ lookup('dig', spoke) }}]
+  when:
+    - state == "absent"
+    - (vxlan_hub_a == inventory_hostname or vxlan_hub_b == inventory_hostname)
+
+
+
+# deploy on spoke
+- name: vxlan_spoke_deploy
+  routeros_command:
+    commands:
+      - /interface/bridge add name={{ vxlan_bridge }} {{ vxlan_bridge_options }}
+      - /interface/vxlan add name=vxlan{{ vni }} {{ vxlan_options }} \
+          vni={{ vni }} local-address={{ lookup('dig', spoke) }} \
+          comment="{{ comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ vni }} \
+          remote-ip={{ lookup('dig', vxlan_hub_a) }} {{ vxlan_vtep_options }}
+      - /interface/vxlan/vteps add interface=vxlan{{ vni }} \
+          remote-ip={{ lookup('dig', vxlan_hub_b) }} {{ vxlan_vtep_options }}
+      - /interface/bridge/port add bridge={{ vxlan_bridge }} \
+          interface=vxlan{{ vni }} pvid={{ bridge_vlan|default(vni) }}
+      - /interface/bridge/port add bridge={{ vxlan_bridge }} \
+          interface={{ spoke_if }} pvid={{ bridge_vlan|default(vni) }} edge=yes
+      - /interface/bridge/vlan add bridge={{ vxlan_bridge }} \
+          untagged=vxlan{{ vni }},{{ spoke_if }} vlan-ids={{ bridge_vlan|default(vni) }}
+  when:
+    - state == "create"
+    - spoke == inventory_hostname
+
+
+
+# deploy on hub_a
+- name: vxlan_hub_a_add
+  routeros_command:
+    commands:
+      - /interface/vxlan add name=vxlan{{ vni }} {{ vxlan_options }} \
+          vni={{ vni }} local-address={{ lookup('dig', vxlan_hub_a) }} \
+          comment="{{ comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ vni }} {{ vxlan_vtep_options }} \
+          remote-ip={{ lookup('dig', vxlan_hub_b) }} \
+          comment="{{ vxlan_hub_b }};{{ comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ vni }} {{ vxlan_vtep_options }} \
+          remote-ip={{ lookup('dig', spoke) }} \
+          comment="{{ spoke }};{{ comment }}"
+  when:
+    - state == "create"
+    - vxlan_hub_a == inventory_hostname
+
+# deploy on hub_b
+- name: vxlan_hub_b_add
+  routeros_command:
+    commands:
+      - /interface/vxlan add name=vxlan{{ vni }} {{ vxlan_options }} \
+          vni={{ vni }} local-address={{ lookup('dig', vxlan_hub_b) }} \
+          comment="{{ comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ vni }} {{ vxlan_vtep_options }} \
+          remote-ip={{ lookup('dig', vxlan_hub_a) }} \
+          comment="{{ vxlan_hub_a }};{{ comment }}"
+      - /interface/vxlan/vteps add interface=vxlan{{ vni }} {{ vxlan_vtep_options }} \
+          remote-ip={{ lookup('dig', spoke) }} \
+          comment="{{ spoke }};{{ comment }}"
+  when:
+    - state == "create"
+    - vxlan_hub_b == inventory_hostname
+
+
+
+

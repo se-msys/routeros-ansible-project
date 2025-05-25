@@ -5,7 +5,7 @@ wg_hub_loopback: 172.30.255.1
 wg_hub_linknet: 172.30.254.0/24
 wg_hub_network: 198.18.0.0/24
 wg_hub_primary: chr1
-wg_hub_backup: chr2
+wg_hub_secondary: chr2
 wg_hub_group: site1
 wg_id: 77
 wg_hub_pubkey: "7jM2aJMTWAk6UjgKAjPIXBEp07oQkFAaFn4P8aXnURM="

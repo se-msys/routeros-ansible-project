@@ -1,9 +1,9 @@
 #
 # EoIP L3VPN Push-based tunnels
 #
-# Example run:
+# Example usage:
 # > ansible-playbook playbook.yaml -t eopush -l hub1,hub2,spoke1 -e @vars/eoip55.yaml \
-#   -e "tid=123 spoke=spoke1 spoke_intf=ether7 hub_tun_addr=192.168.99.1/24 state=create"
+#   -e "tid=123 spoke=spoke1 spoke_if=ether7 hub_tun_addr=192.168.99.1/24 state=create"
 #
 
 
@@ -11,7 +11,7 @@
 - name: eoip_remove_spoke
   routeros_command:
     commands:
-      - /interface/bridge/port remove [find interface={{ spoke_intf }}]
+      - /interface/bridge/port remove [find interface={{ spoke_if }}]
       - /interface/bridge/port remove [find interface=eoip-{{ service_id }}-{{ tid }}]
       - /interface/eoip remove [find name=eoip-{{ service_id }}-{{ tid }}]
       - /interface/bridge remove [find name=br-{{ service_id }}]
@@ -28,7 +28,7 @@
       - /interface/eoip remove [find name=eoip-{{ service_id }}-{{ tid }}]
   when:
     - state == "absent"
-    - (hub_primary == inventory_hostname or hub_backup == inventory_hostname)
+    - (hub_primary == inventory_hostname or hub_secondary == inventory_hostname)
 
 
 
@@ -48,7 +48,7 @@
           arp=disabled disabled=no \
           comment="{{ service_id }};{{ tid }};{{ comment }}"
       - /interface/bridge/port add bridge=br-{{ service_id }} interface=eoip-{{ service_id }}-{{ tid }}
-      - /interface/bridge/port add bridge=br-{{ service_id }} interface={{ spoke_intf }} edge=yes
+      - /interface/bridge/port add bridge=br-{{ service_id }} interface={{ spoke_if }} edge=yes
   when:
     - state == "create"
     - spoke == inventory_hostname
@@ -72,7 +72,7 @@
           comment="{{ service_id }};{{ tid }};{{ comment }}"
   when:
     - state == "create"
-    - (hub_primary == inventory_hostname or hub_backup == inventory_hostname)
+    - (hub_primary == inventory_hostname or hub_secondary == inventory_hostname)
 
 
 
@@ -88,14 +88,14 @@
 
 
 # disable tunnel on backup hub
-- name: eoip_hub_backup_set
+- name: eoip_hub_secondary_set
   tags: eoip
   routeros_command:
     commands:
       - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] disabled=yes
   when:
     - state == "create"
-    - hub_backup == inventory_hostname
+    - hub_secondary == inventory_hostname
 
 
 

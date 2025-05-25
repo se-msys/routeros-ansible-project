@@ -15,13 +15,13 @@ This is a set of tasks and data strucutres to manage a large set of Layer 2 or L
   - Switching, VLANs and Bridges
   - Additional Tunnel settings
 
-#### EoIP with inventory ####
 
-  - **eoip** - Plain EoIP tunnel
-  - **eoip_ab** - Active/Backup setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
+### EoIP with inventory ###
 
 EoIP (Ethernet-over-IP) is a Mikrotik RouterOS properatary GRE-variant to transport Ethernet-frames over IP-transport. It has ability for handling fragmentation and other stuff.
 
+  - **eoip** - Plain EoIP tunnel
+  - **eoip_ab** - Active/Backup setup of a EoIP-tunnel. Bound to a floating IP-address (like VRRP) between the hub routers.
   - **l2t** - Simple Layer 2 tunnel
   - **l2br** - Bridged Layer 2 tunnel (bridged at hubs)
   - **l3t** - Simple Layer 3 tunnel
@@ -57,6 +57,14 @@ The hubs should share a floating IP-adress of some kind, for example with VRRP. 
     on-master="/interface/eoip/enable [find local-address=172.30.255.1]"
 
 This is primarly to make sure that the tunnel subnet is removed from the routing table (most likley a VRF) when tunnel is not longer runnning. If you plan to use Bridged Layer2 services, you should provide a direct link between the hubs. This link can also house the VRRP-adress on a VLAN-interface.
+
+
+### EoIP non-inventory tunnels ###
+
+To be documented
+
+See `roles/routeros/tasks/eoip_push.yaml` and `vars/eoip55.yaml` for example use
+
 
 
 #### EoIP considerations ####
@@ -115,7 +123,15 @@ It is however fully possible to setup IPsec encryption between nodes as with all
 VXLAN requires both parties to have a VTEP relation to work. For that reason, by design, Spokes in a E-tree setup will not be able to communicate, hence the E-tree name.
 
 
-#### WireGuard tunnels ####
+### VXLAN non-inventory tunnels ###
+
+To be documented
+
+See `roles/routeros/tasks/vxlan_push.yaml` and `vars/vxlan.yaml` for example use
+
+
+
+### WireGuard ###
 
 To be documented
 
@@ -140,11 +156,6 @@ Can be setup in a high-avability fashion with the help of VXLAN and VRRP
     
 
 
-#### EoIP tunnels ####
-
-To be documented
-
-See `roles/routeros/tasks/eoip_push.yaml` and `vars/eoip55.yaml` for example use
 
 
 

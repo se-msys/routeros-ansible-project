@@ -10,7 +10,7 @@ wg_hub_routes:
   - 198.51.101.0/24 
   - 198.51.102.0/24
 wg_hub_primary: chr1
-wg_hub_backup: chr2
+wg_hub_secondary: chr2
 wg_hub_group: site1
 wg_hub_pubkey: "4lq0gSjLyi5eveI8BXQKpHqsPADSDI4iYGKqXwduZAc="
 wg_hub_vrf: VRF99

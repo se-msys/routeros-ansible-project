@@ -39,30 +39,29 @@
 - name: ros_vxlan
   tags: vxlan
   import_tasks: roles/routeros/tasks/vxlan_hub.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
 
 - name: ros_vxlan
   tags: 
     - vxlan
     - etree
   import_tasks: roles/routeros/tasks/vxlan_etree.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
 
 - name: ros_vxlan
+  tags: 
     - vxlan
     - eline
   import_tasks: roles/routeros/tasks/vxlan_eline.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
 
 - name: ros_vxlan_ipsec
+  tags: 
     - vxlan
     - etree
   import_tasks: roles/routeros/tasks/vxlan_ipsec.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
+
+- name: ros_vxlan_push
+  tags: vxpush
+  import_tasks: roles/routeros/tasks/vxlan_push.yaml
+
 
 
 #
