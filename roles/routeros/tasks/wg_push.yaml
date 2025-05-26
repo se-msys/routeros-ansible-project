@@ -42,7 +42,7 @@
     - spoke_vrf is defined
 
 # remove interface list
-- name: wg_spoke_remove_intf_list
+- name: wg_spoke_remove_if_list
   routeros_command:
     commands:
       - /interface/list/member remove [find list={{ spoke_if_list }} interface={{ spoke_if }}]

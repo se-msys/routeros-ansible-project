@@ -1,0 +1,8 @@
+# EoIP L3 service template
+
+service_id: 55
+eoip_hub_loopback: 172.30.255.1
+eoip_hub_primary: chr1
+eoip_hub_secondary: chr2
+hub_vrf: VRF55
+comment: "service 55"

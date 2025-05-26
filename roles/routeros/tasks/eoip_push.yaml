@@ -28,7 +28,7 @@
       - /interface/eoip remove [find name=eoip-{{ service_id }}-{{ tid }}]
   when:
     - state == "absent"
-    - (hub_primary == inventory_hostname or hub_secondary == inventory_hostname)
+    - (eoip_hub_primary == inventory_hostname or eoip_hub_secondary == inventory_hostname)
 
 
 
@@ -43,7 +43,7 @@
       - /interface/eoip add name=eoip-{{ service_id }}-{{ tid }} remote-address=0.0.0.0 tunnel-id=0
       - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] \
           local-address={{ lookup('dig', spoke) }} {{ eoip_options }} \
-          remote-address={{ hub_loopback }} \
+          remote-address={{ eoip_hub_loopback }} \
           tunnel-id={{ service_id }}{{ tid }} \
           arp=disabled disabled=no \
           comment="{{ service_id }};{{ tid }};{{ comment }}"
@@ -61,7 +61,7 @@
     commands:
       - /interface/eoip add name=eoip-{{ service_id }}-{{ tid }} remote-address=0.0.0.0 tunnel-id=0
       - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] \
-          local-address={{ hub_loopback }} {{ eoip_options }} \
+          local-address={{ eoip_hub_loopback }} {{ eoip_options }} \
           remote-address={{ lookup('dig', spoke) }} \
           tunnel-id={{ service_id }}{{ tid }} \
           arp=enabled disabled=yes \
@@ -72,7 +72,7 @@
           comment="{{ service_id }};{{ tid }};{{ comment }}"
   when:
     - state == "create"
-    - (hub_primary == inventory_hostname or hub_secondary == inventory_hostname)
+    - (eoip_hub_primary == inventory_hostname or eoip_hub_secondary == inventory_hostname)
 
 
 
@@ -84,7 +84,7 @@
       - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] disabled=no
   when:
     - state == "create"
-    - hub_primary == inventory_hostname
+    - eoip_hub_primary == inventory_hostname
 
 
 # disable tunnel on backup hub
@@ -95,7 +95,7 @@
       - /interface/eoip set [find name=eoip-{{ service_id }}-{{ tid }}] disabled=yes
   when:
     - state == "create"
-    - hub_secondary == inventory_hostname
+    - eoip_hub_secondary == inventory_hostname
 
 
 

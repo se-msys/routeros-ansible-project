@@ -1,0 +1,5 @@
+# vxlan general template
+vxlan_bridge: vxbridge
+vxlan_hub_a: chr1
+vxlan_hub_b: chr2
+comment: "some l2vpn service"
