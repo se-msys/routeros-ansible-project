@@ -32,8 +32,6 @@
 
 
 
-
-
 # deploy on spoke
 - name: eoip_deploy_spoke
   routeros_command:
@@ -96,6 +94,26 @@
   when:
     - state == "create"
     - eoip_hub_secondary == inventory_hostname
+
+
+
+# send mail
+- name: eoip_mail_send
+  community.general.mail:
+    host: "{{ smtp_server }}"
+    port: "{{ smtp_port }}"
+    subtype: html
+    charset: utf8
+    subject: "New tunnel service deployed"
+    from: "{{ email_from }}"
+    to: "{{ email_to }}"
+    body: "{{ lookup('template', 'mail_template.html.j2') }}"
+  delegate_to: localhost
+  when:
+    - mail_send is defined
+    - state == "create"
+    - spoke == inventory_hostname  
+
 
 
 

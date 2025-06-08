@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <h2>Service enablement</h2>
+      <p>A new serice has been deployed</p>
+
+      <table class="table table-bordered table-sm">
+        <tbody>
+          <tr>
+            <th scope="row">Hub</th>
+            <td>{{ hub_group }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Service ID</th>
+            <td>{{ service_id }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Site node</th>
+            <td>{{ spoke }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Interface</th>
+            <td>{{ spoke_if }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Site network</th>
+            <td>{{ spoke_if_addr }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Site gateway</th>
+            <td>{{ spoke_if_addr }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </body>
+</html>
+

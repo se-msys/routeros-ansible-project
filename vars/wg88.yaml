@@ -12,7 +12,7 @@ wg_hub_pubkey: "L//5/8nYE3k2bj54GyhrX5uV39JI3JGjitH6l3Fh3gg="
 
 # spoke settings
 comment: "example service 88"
-spoke_intf_list: ACL-FILTER88
+spoke_if_list: ACL-FILTER88
 
 
 
