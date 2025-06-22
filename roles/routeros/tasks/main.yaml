@@ -71,19 +71,6 @@
   tags: wgpush
   import_tasks: roles/routeros/tasks/wg_push.yaml
 
-- name: ros_wg
-  tags: wireguard
-  import_tasks: roles/routeros/tasks/wg_spoke.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
-
-- name: ros_wg
-  tags: wireguard
-  import_tasks: roles/routeros/tasks/wg_hub.yaml
-  when:
-    - ros_ver.stdout is search("7\..+")
-
-
 
 #
 # DNS and DHCP
@@ -97,7 +84,6 @@
   import_tasks: roles/routeros/tasks/dhcp.yaml
 
 
-
 #
 # Mixed
 #
@@ -107,9 +93,8 @@
 
 
 
-
 # users
-- name: tip_users
+- name: ros_users
   tags:
     - template
     - users
@@ -134,7 +119,7 @@
 
 
 # users_with_key
-- name: tip_users_with_key
+- name: ros_users_with_key
   tags:
     - template
     - users_with_key

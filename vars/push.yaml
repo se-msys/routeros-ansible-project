@@ -1,0 +1,28 @@
+#
+# Push-based inventory
+#
+
+wg_push_instances:
+  - type: wgpush
+    template: vars/wg77.yaml
+    nodes: chr1,chr2,chr8
+    spoke: chr8
+    spoke_nets: 172.19.77.0/27,172.19.77.32/27
+    comment: "some site with two networks"
+    state: create
+
+  - type: wgpush
+    template: vars/wg88.yaml
+    nodes: chr1,chr2,chr8
+    spoke: chr8
+    spoke_nets: 172.19.88.0/27,172.19.88.32/27
+    state: create
+
+  - type: wgpush
+    template: vars/wg99.yaml
+    nodes: chr1,chr2,chr8
+    spoke: chr8
+    spoke_nets: 172.19.99.0/27,172.19.99.32/27
+    state: create
+
+

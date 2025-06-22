@@ -1,0 +1,32 @@
+#
+# RouterOS configure interface
+#
+
+- name: ros_interface
+  routeros_command:
+    commands:
+      - /ip/address add interface={{ intf }} address={{ ipaddr }}
+  when:
+    - state == "create"
+    - vrf is not defined
+
+
+- name: ros_interface_vrf
+  routeros_command:
+    commands:
+      - /interface/list add name=vrf_{{ vrf }}
+      - /interface/list/member add list=vrf_{{ vrf }} interface={{ intf }}
+      - /ip/vrf add name={{ vrf }} interfaces=vrf_{{ vrf }}
+      - /ip/address add interface={{ intf }} address={{ ipaddr }}
+  when:
+    - state == "create"
+    - vrf is defined
+
+
+- name: ros_interface_list
+  routeros_command:
+    commands:
+      - /interface/list/member add list={{ intf_list }} interface={{ intf }}
+  when:
+    - state == "create"
+    - intf_list is defined

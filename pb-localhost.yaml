@@ -1,0 +1,27 @@
+#
+# Run Ansible via Ansible
+#
+
+- name: push_inventory
+  hosts: localhost
+  gather_facts: false
+  connection: local  
+  tasks:
+    # import inventory
+    - name: push_inventory
+      include_vars: vars/push.yaml
+
+    # wireguard-push tunnels
+    - name: wgpush
+      command: ansible-playbook pb-routeros.yaml -t wgpush \
+        -i hosts_labnet \
+        -l {{ item.nodes }} \
+        -e @{{ item.template }} \
+        -e "spoke={{ item.spoke }} spoke_nets={{ item.spoke_nets }} state={{ item.state }}"
+      delegate_to: localhost
+      loop: "{{ wg_push_instances }}"
+      when:
+        - item.type == "wgpush"
+
+
+

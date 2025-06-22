@@ -3,7 +3,7 @@
 #
 # Example usage:
 # > ansible-playbook playbook.yaml -t wgpush -l hub1,hub2,spoke1 -e @vars/wg42.yaml \
-#   -e "spoke=spoke1 spoke_if=ether7 spoke_if_addr=192.168.99.1/24 state=create"
+#   -e "spoke=spoke1 spoke_nets=192.168.99.0/24 state=create"
 #
 
 # remove from hubs
@@ -23,7 +23,6 @@
       - /ip/route remove [find where static gateway~"wg{{ wg_id }}.*"]
       - /interface/wireguard/peers remove [find interface=wg{{ wg_id }}]
       - /ip/address remove [find interface=wg{{ wg_id }}]
-      - /ip/address remove [find address={{ spoke_if_addr }}]
       - /interface/wireguard remove [find name=wg{{ wg_id }}]
   when:
     - state == "absent"
@@ -41,15 +40,6 @@
     - spoke == inventory_hostname
     - spoke_vrf is defined
 
-# remove interface list
-- name: wg_spoke_remove_if_list
-  routeros_command:
-    commands:
-      - /interface/list/member remove [find list={{ spoke_if_list }} interface={{ spoke_if }}]
-  when:
-    - state == "absent"
-    - spoke == inventory_hostname
-    - spoke_if_list is defined
 
 
 
@@ -62,7 +52,6 @@
       - /ip/route remove [find where static gateway~"wg{{ wg_id }}.*"]
       - /interface wireguard add name=wg{{ wg_id }} {{ wg_tunnel_opts }} \
           listen-port=518{{ wg_id }} comment="{{ comment }}"
-      - /ip/address add address={{ spoke_if_addr }} interface={{ spoke_if }}
       - /interface/wireguard/peers add interface=wg{{ wg_id }} {{ wg_peer_opts }} \
           name=wg{{ wg_id }}-hub-{{ wg_hub_group }} \
           endpoint-address={{ wg_hub_loopback }} \
@@ -80,7 +69,6 @@
     commands:
       - /interface/list add name=vrf_{{ spoke_vrf }}
       - /interface/list/member add list=vrf_{{ spoke_vrf }} interface=wg{{ wg_id }}
-      - /interface/list/member add list=vrf_{{ spoke_vrf }} interface={{ spoke_if }}
       - /ip/vrf add name={{ spoke_vrf }} interfaces=vrf_{{ spoke_vrf }}
   when:
     - state == "create"
@@ -113,15 +101,6 @@
   loop: "{{ wg_hub_routes }}"
 
 
-# add spoke interface to list
-- name: wg_spoke_if_list
-  routeros_command:
-    commands:
-      - /interface/list/member add list={{ spoke_if_list }} interface={{ spoke_if }}
-  when:
-    - state == "create"
-    - spoke == inventory_hostname
-    - spoke_if_list is defined
 
 
 # get public-key from spoke tunnel
@@ -177,7 +156,7 @@
     commands:
       - /ip/route remove [find dst-address={{ spoke_if_addr|ansible.utils.ipv4('network/prefix') }}]
       - /ip/route add comment=wg{{ wg_id }}-spoke-{{ spoke }} \
-          dst-address={{ spoke_if_addr|ansible.utils.ipv4('network/prefix') }} \
+          dst-address={{ spoke_nets }} \
           gateway=wg{{ wg_id }}
   when:
     - state == "create"
@@ -190,7 +169,7 @@
     commands:
       - /ip/route remove [find dst-address={{ spoke_if_addr|ansible.utils.ipv4('network/prefix') }}]
       - /ip/route add comment=wg{{ wg_id }}-spoke-{{ spoke }} \
-          dst-address={{ spoke_if_addr|ansible.utils.ipv4('network/prefix') }} \
+          dst-address={{ spoke_nets }} \
           gateway=wg{{ wg_id }} routing-table={{ wg_hub_vrf }} vrf-interface={{ wg_hub_vrf }}
   when:
     - state == "create"
@@ -206,7 +185,7 @@
 - name: wg_spoke_active_tunnel
   routeros_command:
     commands:
-      - /ip/address add address={{ spoke_tun_addr }}/{{ wg_tun_cidr }} interface=wg{{ wg_id }}
+      - /ip/address add address={{ spoke_tun_addr }}/{{ wg_tun_prefix }} interface=wg{{ wg_id }}
   when:
     - state == "create"
     - spoke == inventory_hostname
@@ -217,8 +196,8 @@
   routeros_command:
     commands:
       - /interface/wireguard/peers set [find name=wg{{ wg_id }}-spoke-{{ spoke }}] \
-          allowed-address={{ spoke_tun_addr }},{{ spoke_if_addr|ansible.utils.ipv4('network/prefix') }}
-      - /ip/route set [find dst-address={{ spoke_if_addr|ansible.utils.ipv4('network/prefix') }}] \
+          allowed-address={{ wg_tun_network }},{{ spoke_nets }}
+      - /ip/route set [find dst-address={{ spoke_nets }}] \
           gateway={{ spoke_tun_addr }} check-gateway=ping
   when:
     - state == "create"
